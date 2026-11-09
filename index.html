@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <base target="_top">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>北多摩 公共工事 入札情報</title>
+  <meta name="description" content="北多摩17市の工事公告を毎朝更新。最低制限価格の目安と、自社の技術者を配置できるかのチェックができる無料ツールです。">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="北多摩 公共工事 入札情報">
+  <meta property="og:title" content="北多摩 公共工事 入札情報">
+  <meta property="og:description" content="17市の工事公告を毎朝更新｜最低制限価格の目安｜技術者の配置チェック（無料）">
+  <meta property="og:url" content="https://nakamuraseikotsu-cell.github.io/kitatama-bid/">
+  <meta property="og:image" content="https://nakamuraseikotsu-cell.github.io/kitatama-bid/ogp.png">
+  <meta property="og:locale" content="ja_JP">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#0f172a">
+  <link rel="icon" type="image/png" sizes="192x192" href="https://nakamuraseikotsu-cell.github.io/kitatama-bid/icon-192.png">
+  <link rel="apple-touch-icon" href="https://nakamuraseikotsu-cell.github.io/kitatama-bid/apple-touch-icon.png">
+  <script>
+    // ===== Apps Script の外（GitHub Pages）で動かすための接続部分 =====
+    // Apps Script の中では google.script.run がそのまま使われるので、ここは何もしない。
+    // 外では、同じ呼び方のままApps Scriptへ問い合わせる。Cookieを送らないので、
+    // 見る人のGoogleのログイン状態（複数アカウントなど）に左右されない。
+    (function () {
+      var API_URL = 'https://script.google.com/macros/s/AKfycbyCURK3Yb-MOQzTZ7gpiuevEOo5_Pu3E6p0gxym2vuzB08sXsRAwPHHdM8exiexEZc/exec';
+      if (window.google && window.google.script && window.google.script.run) return;
+      if (/googleusercontent\.com$/.test(location.hostname)) return;
+      function call(fn, args, ok, ng) {
+        fetch(API_URL, { method: 'POST', body: JSON.stringify({ fn: fn, args: args }), credentials: 'omit', redirect: 'follow' })
+          .then(function (r) {
+            if (!r.ok) throw new Error('通信エラーが起きました（' + r.status + '）。時間をおいてもう一度お試しください。');
+            return r.json();
+          })
+          .then(function (d) {
+            if (d && d.ok) ok(d.result);
+            else ng(new Error((d && d.error) || '処理できませんでした。'));
+          })
+          .catch(function (e) {
+            var m = (e && e.message) || String(e);
+            if (/Failed to fetch|NetworkError|Load failed|JSON/.test(m)) m = '通信できませんでした。電波の良い所でもう一度お試しください。';
+            ng(new Error(m));
+          });
+      }
+      function makeRunner() {
+        var ok = function () {}, ng = function () {};
+        var p = new Proxy({}, {
+          get: function (_, name) {
+            if (name === 'withSuccessHandler') return function (f) { ok = f; return p; };
+            if (name === 'withFailureHandler') return function (f) { ng = f; return p; };
+            if (name === 'withUserObject') return function () { return p; };
+            if (typeof name !== 'string' || name === 'then') return undefined;
+            return function () { call(name, Array.prototype.slice.call(arguments), ok, ng); };
+          }
+        });
+        return p;
+      }
+      window.google = window.google || {};
+      window.google.script = {
+        url: {
+          getLocation: function (cb) {
+            var q = {};
+            new URLSearchParams(location.search).forEach(function (v, k) { q[k] = v; });
+            cb({ parameter: q, hash: location.hash.replace(/^#/, '') });
+          }
+        }
+      };
+      Object.defineProperty(window.google.script, 'run', { get: makeRunner });
+    })();
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; background-color: #f1f5f9; overflow-x: hidden; }
+    .blur-lock { filter: blur(6px); user-select: none; pointer-events: none; }
+    .step-badge { background: linear-gradient(135deg, #059669 0%, #047857 100%); }
+    .custom-scroll::-webkit-scrollbar { width: 8px; }
+    .custom-scroll::-webkit-scrollbar-track { background: #1e293b; border-radius: 6px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #10b981; border-radius: 6px; }
+    input[type=number]::-webkit-inner-spin-button { opacity: .4; }
+    button[disabled] { opacity: .5; cursor: not-allowed; }
+  </style>
+</head>
+<body class="p-2 sm:p-4 md:p-6 text-gray-800">
+  <div class="max-w-5xl mx-auto space-y-4 pb-16">
+
+    <!-- ヘッダー -->
+    <header class="flex items-center gap-3 px-1 pt-1">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="w-11 h-11 md:w-12 md:h-12 shrink-0 drop-shadow-sm" aria-hidden="true">
+        <defs>
+          <linearGradient id="hdrIconBg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#1e293b"/>
+            <stop offset="1" stop-color="#0f172a"/>
+          </linearGradient>
+        </defs>
+        <rect width="512" height="512" rx="112" fill="url(#hdrIconBg)"/>
+        <!-- 吊り荷：入札書類 -->
+        <line x1="372" y1="168" x2="372" y2="262" stroke="#e2e8f0" stroke-width="10" stroke-linecap="round"/>
+        <rect x="300" y="262" width="144" height="150" rx="16" fill="#ffffff"/>
+        <rect x="324" y="292" width="96" height="16" rx="8" fill="#10b981"/>
+        <rect x="324" y="324" width="96" height="12" rx="6" fill="#cbd5e1"/>
+        <rect x="324" y="350" width="64" height="12" rx="6" fill="#cbd5e1"/>
+        <!-- クレーン -->
+        <path d="M190 104 L226 104 L238 140 L178 140 Z" fill="#34d399"/>
+        <line x1="208" y1="104" x2="98" y2="140" stroke="#34d399" stroke-width="10" stroke-linecap="round"/>
+        <line x1="208" y1="104" x2="400" y2="140" stroke="#34d399" stroke-width="10" stroke-linecap="round"/>
+        <rect x="80" y="140" width="344" height="34" rx="10" fill="#10b981"/>
+        <rect x="80" y="174" width="56" height="40" rx="8" fill="#059669"/>
+        <rect x="188" y="174" width="40" height="244" fill="#10b981"/>
+        <rect x="140" y="408" width="136" height="28" rx="10" fill="#059669"/>
+      </svg>
+      <div class="min-w-0">
+        <h1 class="text-lg md:text-2xl font-extrabold text-slate-900 leading-tight">北多摩 公共工事 入札情報</h1>
+        <p class="text-[11px] md:text-xs text-slate-500 leading-snug">17市の工事公告を毎朝更新｜最低制限価格の目安｜技術者の配置チェック</p>
+      </div>
+    </header>
+
+    <!-- ご意見募集リンク（?fb=1）から来た人への案内 -->
+    <div id="fbInvite" class="hidden bg-amber-50 border-2 border-amber-300 rounded-xl p-3 flex items-start gap-3">
+      <div class="text-2xl leading-none">🙏</div>
+      <div class="flex-1 text-sm text-amber-900">
+        <p class="font-bold">試していただきありがとうございます</p>
+        <p class="text-xs mt-0.5">少し触ってみたら、画面右下の「📝 感想を送る」から、タップだけで30秒ほどで答えられます。</p>
+      </div>
+      <button onclick="openFeedback()" class="shrink-0 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3 py-2 rounded-lg cursor-pointer">いま答える</button>
+    </div>
+
+    <!-- 最上部：使い方 -->
+    <div class="bg-white border border-slate-200 rounded-xl p-3 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-2">
+      <div class="flex flex-wrap items-center gap-1.5 text-xs font-bold text-slate-700">
+        <span class="bg-slate-900 text-white px-2 py-1 rounded">💡 使い方</span>
+        <span class="bg-emerald-50 text-emerald-900 border border-emerald-200 px-2 py-1 rounded">① 工事を選ぶ</span>
+        <span class="text-slate-400">▶</span>
+        <span class="bg-emerald-50 text-emerald-900 border border-emerald-200 px-2 py-1 rounded">② 最低制限価格の範囲とライバルを確認</span>
+        <span class="text-slate-400">▶</span>
+        <span class="bg-emerald-50 text-emerald-900 border border-emerald-200 px-2 py-1 rounded">③ 技術者・資金を相談</span>
+      </div>
+      <div id="lastSync" class="text-[11px] text-slate-500"></div>
+    </div>
+
+    <!-- 通知バー -->
+    <div id="topNotice" class="hidden bg-emerald-600 text-white text-sm font-bold px-4 py-3 rounded-xl shadow-md flex items-center justify-between">
+      <span id="topNoticeText"></span>
+      <button onclick="hide('topNotice')" class="text-white font-bold px-2">×</button>
+    </div>
+
+    <div id="opWarn" class="hidden bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold px-4 py-3 rounded-xl">
+      現在、お問い合わせの受付を停止しています。（運営者の方へ：コード.gs の OPERATOR に事業者名と問い合わせ窓口を記入し、新しいバージョンでデプロイしてください）
+    </div>
+
+    <!-- メールのリンク（登録の確認・配信の停止）から来た人向け -->
+    <div id="subBox" class="hidden bg-white border-2 border-sky-300 rounded-xl p-4 space-y-2">
+      <h2 id="subTitle" class="text-base font-extrabold text-gray-900"></h2>
+      <p id="subMsg" class="text-sm text-gray-700"></p>
+      <button id="subBtn" onclick="doSubscriptionAction()" class="hidden bg-sky-700 hover:bg-sky-800 text-white font-extrabold px-5 py-2.5 rounded-xl text-sm cursor-pointer"></button>
+    </div>
+
+    <div id="loadingBox" class="bg-white border border-slate-200 rounded-xl p-8 text-center text-sm text-slate-500">データを読み込んでいます…</div>
+    <div id="errorBox" class="hidden bg-rose-50 border border-rose-200 rounded-xl p-6 text-center text-sm text-rose-800"></div>
+
+    <div id="mainArea" class="hidden space-y-4">
+
+      <!-- STEP 1：案件セレクター -->
+      <div class="bg-slate-900 text-white p-4 md:p-5 rounded-xl shadow-md space-y-3 relative">
+        <div class="flex flex-col gap-2.5">
+          <div class="flex items-center gap-2">
+            <span class="step-badge text-white text-xs font-extrabold px-2.5 py-1 rounded shrink-0">STEP 1</span>
+            <span class="font-bold text-sm md:text-base">工事案件を選択（開札前・開札日未確認の案件：<span id="countLabel">0</span>件）</span>
+          </div>
+          <div class="flex flex-wrap gap-1 text-xs" id="cityFilter"></div>
+          <div class="flex flex-wrap items-center gap-1 text-xs" id="kindFilter"></div>
+        </div>
+
+        <div id="noProjects" class="hidden bg-slate-800 border border-amber-400 text-amber-200 text-sm rounded-xl p-4">
+          表示できる案件がありません。（運営者の方へ：スプレッドシートの「🏗 入札情報 管理」メニューから ① または ② を実行してください）
+        </div>
+
+        <div id="ddWrap" class="relative w-full">
+          <button type="button" id="ddBtn" onclick="toggleDropdown(event)" class="w-full bg-slate-800 hover:bg-slate-700 text-left rounded-xl px-4 py-3 border-2 border-emerald-500 flex items-center justify-between gap-3 transition cursor-pointer shadow-inner">
+            <div class="min-w-0 flex-1">
+              <div class="flex flex-wrap items-center gap-2 text-xs text-emerald-400 font-bold mb-0.5">
+                <span id="ddDate"></span>
+                <span id="ddOrg" class="text-gray-300 break-words"></span>
+              </div>
+              <div id="ddTitle" class="text-sm md:text-base font-extrabold text-white break-words leading-snug"></div>
+            </div>
+            <div class="bg-emerald-600 text-white text-xs font-bold px-3 py-2 rounded-lg shrink-0 flex items-center gap-1">
+              <span>案件変更</span><span id="ddArrow">▼</span>
+            </div>
+          </button>
+          <div id="ddList" class="hidden mt-2 w-full bg-slate-800 border-2 border-emerald-400 rounded-xl shadow-2xl max-h-80 overflow-y-auto custom-scroll divide-y divide-slate-700 z-40"></div>
+        </div>
+      </div>
+
+      <!-- 案件詳細＆最低制限価格の範囲 -->
+      <div id="detailCard" class="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-200 space-y-4">
+        <div class="flex flex-col lg:flex-row justify-between items-start gap-4">
+          <div class="space-y-2 flex-1 min-w-0 w-full">
+            <div class="flex flex-wrap items-center gap-2">
+              <span id="senninBadge" class="text-xs font-bold px-3 py-1 rounded-full border"></span>
+              <span id="priceKindBadge" class="text-xs font-bold px-3 py-1 rounded-full border bg-slate-50 text-slate-700 border-slate-200"></span>
+              <span id="daysBadge" class="hidden text-xs font-bold px-3 py-1 rounded-full border bg-rose-50 text-rose-700 border-rose-200"></span>
+              <a id="urlBadge" class="hidden text-xs font-bold px-3 py-1 rounded-full border bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100" target="_blank" rel="noopener noreferrer">📄 公告を開く ↗</a>
+              <a id="calBadge" class="hidden text-xs font-bold px-3 py-1 rounded-full border bg-sky-50 text-sky-800 border-sky-300 hover:bg-sky-100" target="_blank" rel="noopener noreferrer">📅 開札日をGoogleカレンダーに追加</a>
+            </div>
+            <h1 id="projTitle" class="text-lg md:text-2xl font-extrabold text-gray-900 break-words leading-snug"></h1>
+            <dl id="projMeta" class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-600"></dl>
+            <p id="priceEvidence" class="hidden text-[11px] text-gray-500 bg-gray-50 border border-gray-200 rounded p-2 break-words"></p>
+          </div>
+
+          <div class="bg-slate-900 text-white p-4 rounded-xl text-right w-full lg:w-auto lg:min-w-[310px] shadow-md space-y-2 shrink-0">
+            <div>
+              <div class="text-xs text-gray-300">🎯 最低制限価格の範囲（中央公契連モデルの場合）</div>
+              <div id="rangeVal" class="text-xl md:text-2xl font-extrabold text-emerald-400 mt-0.5"></div>
+              <div id="rangeSub" class="text-[11px] text-gray-400 mt-0.5">予定価格の75%〜92%</div>
+              <div id="basePriceVal" class="text-xs text-gray-300 mt-1"></div>
+            </div>
+            <div class="pt-2 border-t border-slate-700 flex flex-wrap items-center justify-end gap-2 text-xs">
+              <label for="priceInput" class="text-amber-300 font-bold">✏️ 予定価格を入力して試算:</label>
+              <input id="priceInput" type="number" min="0" step="10" oninput="onPriceInput()" class="bg-slate-800 text-white font-bold border border-slate-600 rounded px-2 py-1 w-28 text-right focus:outline-none focus:border-emerald-400" placeholder="例：5000">
+              <span class="text-gray-300">万円</span>
+            </div>
+            <button id="resetPriceBtn" onclick="resetPrice()" class="hidden text-[11px] underline text-gray-400 hover:text-gray-200">公告の金額に戻す</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+          <div class="md:col-span-2 bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 flex flex-col justify-center">
+            <div class="text-xs font-extrabold text-emerald-800 mb-0.5">📊 ライバルの状況（経審・入札結果の公開データから）</div>
+            <div id="verdictText" class="text-xs md:text-sm text-gray-900 leading-relaxed"></div>
+          </div>
+          <div class="bg-amber-50 border border-amber-200 rounded-xl p-3.5 flex flex-col justify-center">
+            <div class="text-xs font-extrabold text-amber-900 mb-0.5">🛡 失格にならない目安ライン</div>
+            <div id="safeLineVal" class="text-lg font-extrabold text-amber-900"></div>
+            <div class="text-[11px] text-amber-800 leading-snug">予定価格の92%（中央公契連モデルの上限）。発注機関が独自の式や係数を使う場合があるので、公告の算定基準を確認してください。</div>
+          </div>
+        </div>
+
+        <details id="modelBox" class="bg-slate-50 border border-slate-200 rounded-xl p-3">
+          <summary class="text-xs font-bold text-slate-800 cursor-pointer">🧮 内訳がわかる場合：中央公契連モデルで最低制限価格を計算する</summary>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-3 text-xs">
+            <label class="space-y-1"><span class="font-bold text-gray-700">直接工事費（万円）</span>
+              <input id="mDirect" type="number" min="0" step="1" oninput="renderModel()" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5 text-right focus:outline-none focus:border-emerald-600"></label>
+            <label class="space-y-1"><span class="font-bold text-gray-700">共通仮設費（万円）</span>
+              <input id="mCommon" type="number" min="0" step="1" oninput="renderModel()" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5 text-right focus:outline-none focus:border-emerald-600"></label>
+            <label class="space-y-1"><span class="font-bold text-gray-700">現場管理費（万円）</span>
+              <input id="mSite" type="number" min="0" step="1" oninput="renderModel()" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5 text-right focus:outline-none focus:border-emerald-600"></label>
+            <label class="space-y-1"><span class="font-bold text-gray-700">一般管理費等（万円）</span>
+              <input id="mGeneral" type="number" min="0" step="1" oninput="renderModel()" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5 text-right focus:outline-none focus:border-emerald-600"></label>
+          </div>
+          <div id="modelResult" class="mt-3 text-sm font-bold text-slate-900"></div>
+          <div class="text-[11px] text-gray-500 mt-1 leading-relaxed">計算式：直接工事費×97%＋共通仮設費×90%＋現場管理費×90%＋一般管理費等×68%。結果が予定価格の75%未満なら75%、92%を超えるなら92%にします（すべて税抜）。予定価格が未入力のときは、4つの内訳の合計を予定価格として扱います。</div>
+        </details>
+      </div>
+
+      <!-- 自社の技術者チェック（この端末のブラウザだけに保存） -->
+      <div id="staffCard" class="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-200 space-y-3">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-2">
+          <div>
+            <h2 class="text-base md:text-lg font-bold text-gray-900">👷 自社の技術者でこの案件に入れるか</h2>
+            <p class="text-[11px] text-gray-500 mt-0.5">登録した技術者は、この端末のブラウザにだけ保存されます。運営者には送信されません。</p>
+          </div>
+          <button onclick="toggleStaffForm()" class="text-xs font-bold bg-slate-800 hover:bg-slate-700 text-white px-3 py-2 rounded-lg cursor-pointer shrink-0">＋ 技術者を登録</button>
+        </div>
+        <div id="staffForm" class="hidden grid grid-cols-1 md:grid-cols-3 gap-2 text-xs bg-slate-50 border border-slate-200 rounded-xl p-3">
+          <label class="space-y-1"><span class="font-bold text-gray-700">呼び名（イニシャル可）</span><input id="sfName" type="text" maxlength="30" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5"></label>
+          <label class="space-y-1"><span class="font-bold text-gray-700">資格</span><select id="sfQual" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5"></select></label>
+          <label class="space-y-1"><span class="font-bold text-gray-700">雇用開始日</span><input id="sfHired" type="date" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5"></label>
+          <label class="flex items-center gap-2"><input id="sfKanri" type="checkbox"><span>監理技術者資格者証あり</span></label>
+          <label class="space-y-1"><span class="font-bold text-gray-700">いまの配置</span><select id="sfStatus" onchange="onStaffStatus()" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5"><option value="free">配置なし</option><option value="nonsennin">専任でない現場に配置中</option><option value="sennin">専任で配置中</option></select></label>
+          <div id="sfSenninBox" class="hidden grid grid-cols-2 gap-2">
+            <label class="space-y-1"><span class="font-bold text-gray-700">その工事の請負金額（万円）</span><input id="sfCurAmt" type="number" min="0" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5"></label>
+            <label class="space-y-1"><span class="font-bold text-gray-700">その工事の工期の終わり</span><input id="sfCurEnd" type="date" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5"></label>
+          </div>
+          <div class="md:col-span-3 flex items-center justify-end gap-2">
+            <p id="sfErr" class="hidden text-xs font-bold text-rose-600 mr-auto"></p>
+            <button onclick="toggleStaffForm()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-4 py-2 rounded-lg cursor-pointer">閉じる</button>
+            <button onclick="addStaff()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-lg cursor-pointer">登録する</button>
+          </div>
+        </div>
+        <div id="staffSummary" class="text-sm text-gray-900"></div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse min-w-[640px]">
+            <thead><tr class="border-b-2 border-gray-200 text-xs text-gray-600 bg-gray-50"><th class="py-2 px-2">技術者</th><th class="py-2 px-2">資格</th><th class="py-2 px-2">雇用3か月</th><th class="py-2 px-2">この案件への配置</th><th class="py-2 px-2"></th></tr></thead>
+            <tbody id="staffBody" class="divide-y text-sm"></tbody>
+          </table>
+        </div>
+        <p class="text-[11px] text-gray-500 leading-relaxed">判定は目安です。専任の要否は請負金額4,500万円（建築一式は9,000万円）以上かどうか、雇用期間は入札の申込日の時点で3か月以上あるかで判断されます。元請として下請に合計5,000万円（建築一式は8,000万円）以上を出す場合は、監理技術者（1級の資格と監理技術者資格者証）が必要です。最終的には公告・入札説明書と発注者の運用で確認してください。</p>
+      </div>
+
+      <!-- STEP 2：ライバル企業 -->
+      <div class="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-200 relative overflow-hidden">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-3 gap-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="step-badge text-white text-xs font-extrabold px-2.5 py-1 rounded">STEP 2</span>
+              <h2 class="text-base md:text-lg font-bold text-gray-900">ライバル企業の技術者の状況（経審・入札結果より）</h2>
+            </div>
+            <p class="text-[11px] text-gray-500 mt-1 leading-relaxed">
+              ※請負金額4,500万円以上（建築一式は9,000万円以上）の公共工事では、技術者を専任で置く必要があります。<br>
+              ※専任の技術者が空いていなくても、①各工事が1億円未満（建築一式は2億円未満）で現場間の移動が概ね2時間以内などの要件を満たす場合（2024年12月施行）、②密接な関係のある工事で現場間が10km程度以内の場合は、兼任できることがあります。<br>
+              ※「推定空き」は経審の技術職員数から、入札結果で確認できる手持ちの公共工事件数を引いた目安です。民間工事は公開されていないため含みません。
+            </p>
+          </div>
+          <div id="sortGroup" class="flex flex-wrap items-center gap-1 text-xs bg-slate-100 p-1 rounded-lg border border-slate-200 shrink-0">
+            <span class="text-gray-500 font-bold px-1.5">並び替え:</span>
+            <button onclick="changeSort('DEFAULT', this)" class="sort-btn bg-white text-slate-900 font-bold px-2.5 py-1 rounded shadow-sm transition cursor-pointer">標準順</button>
+            <button onclick="changeSort('LIKELY', this)" class="sort-btn text-gray-600 hover:text-slate-900 px-2.5 py-1 rounded transition cursor-pointer">参加可能性が高い順</button>
+            <button onclick="changeSort('RATE', this)" class="sort-btn text-gray-600 hover:text-slate-900 px-2.5 py-1 rounded transition cursor-pointer">平均落札率が低い順</button>
+          </div>
+        </div>
+
+        <div id="rivalEmpty" class="hidden bg-slate-50 border border-dashed border-slate-300 rounded-xl p-6 text-center space-y-1">
+          <div class="text-sm font-bold text-slate-800">ライバル企業のデータは準備中です</div>
+          <div class="text-xs text-slate-600">経営事項審査の結果と、東京都・各市の入札結果をもとに、実在企業のデータを出典付きで整備しています。</div>
+        </div>
+
+        <div id="rivalTableWrap" class="overflow-x-auto">
+          <table class="w-full text-left border-collapse min-w-[760px]">
+            <thead>
+              <tr class="border-b-2 border-gray-200 text-xs text-gray-600 bg-gray-50">
+                <th class="py-3 px-2 w-[24%]">企業名（本店・経審P点）</th>
+                <th class="py-3 px-2 w-[9%]">技術職員</th>
+                <th class="py-3 px-2 w-[12%]">手持ち公共工事</th>
+                <th class="py-3 px-2 w-[9%]">推定空き</th>
+                <th class="py-3 px-2 w-[24%]">この案件への参加可能性</th>
+                <th class="py-3 px-2 w-[14%]">平均落札率</th>
+                <th class="py-3 px-2 w-[8%]">出典</th>
+              </tr>
+            </thead>
+            <tbody id="rivalBody" class="divide-y text-sm border-b"></tbody>
+          </table>
+
+          <div id="lockWrap" class="relative min-w-[760px]">
+            <table class="w-full text-left border-collapse">
+              <tbody id="lockedBody" class="divide-y text-sm"></tbody>
+            </table>
+
+            <div id="unlockOverlay" class="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center p-4 z-10 rounded-b-xl">
+              <div class="bg-white p-5 rounded-2xl shadow-2xl border-2 border-slate-900 max-w-md w-full text-center space-y-3">
+                <div class="inline-block bg-amber-100 text-amber-900 text-xs font-extrabold px-3 py-1 rounded-full">
+                  🔒 残り<span id="lockedCount">0</span>社のデータを無料で表示
+                </div>
+                <p class="text-xs text-gray-600 leading-relaxed">下の項目を入力して送信すると、登録済みの全<span id="totalRivalCount">0</span>社のデータが表示されます（無料）。</p>
+                <div class="space-y-2 text-left text-sm">
+                  <input id="inCompany" type="text" maxlength="100" placeholder="① 貴社名（例：〇〇建設株式会社）" class="w-full border-2 border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-600">
+                  <input id="inContact" type="text" maxlength="200" placeholder="② ご担当者名・お電話番号（またはメール）" class="w-full border-2 border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-600">
+                  <input id="inPriv" type="number" min="0" placeholder="③ 稼働中の民間工事の専任数（任意）" class="w-full border-2 border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-600">
+                  <label class="flex items-start gap-2 text-[11px] text-gray-700 leading-snug">
+                    <input id="inPrivacy" type="checkbox" class="mt-0.5 shrink-0">
+                    <span><strong>（必須）</strong><a href="#" onclick="openPrivacy(event)" class="underline text-emerald-700">プライバシー方針</a>に同意します。入力内容は運営者が記録し、運営者からのご連絡に利用します。</span>
+                  </label>
+                  <label class="flex items-start gap-2 text-[11px] text-gray-700 leading-snug">
+                    <input id="inPartner" type="checkbox" class="mt-0.5 shrink-0">
+                    <span><strong>（任意）</strong>提携先（<span id="partnerListShort"></span>）からの案内も希望します。チェックした場合、入力内容を提携先に提供します。</span>
+                  </label>
+                </div>
+                <p id="unlockErr" class="hidden text-xs font-bold text-rose-600"></p>
+                <button id="unlockBtn" onclick="unlockData()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3 rounded-xl text-sm transition shadow-lg cursor-pointer">
+                  🔓 送信して全社を表示する
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3：提携先への相談 -->
+      <div class="space-y-3">
+        <div class="flex items-center gap-2 px-1">
+          <span class="step-badge text-white text-xs font-extrabold px-2.5 py-1 rounded">STEP 3</span>
+          <span class="font-bold text-sm text-gray-800">技術者や資金の不足でこの案件を見送る前に（提携先へのご相談・無料）</span>
+        </div>
+
+        <div id="leadBox" class="hidden bg-white rounded-2xl shadow-xl border-2 border-emerald-600 p-5 space-y-4">
+          <div class="flex justify-between items-start">
+            <div>
+              <span class="bg-emerald-100 text-emerald-800 text-xs font-extrabold px-2.5 py-1 rounded">📩 ご相談フォーム</span>
+              <h3 id="leadTitle" class="text-base md:text-lg font-extrabold text-gray-900 mt-1.5"></h3>
+              <p class="text-xs text-gray-600 mt-0.5">閲覧中の案件：<span id="leadProj" class="font-bold text-gray-900"></span></p>
+            </div>
+            <button onclick="closeLead()" class="text-gray-400 hover:text-gray-700 text-xl font-bold px-2 cursor-pointer">×</button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+            <div>
+              <label for="leadCompany" class="text-xs font-bold text-gray-700">① 貴社名</label>
+              <input id="leadCompany" type="text" maxlength="100" placeholder="例：〇〇建設株式会社" class="w-full border-2 border-gray-300 rounded-lg px-3 py-2 mt-1 focus:outline-none focus:border-emerald-600">
+            </div>
+            <div>
+              <label for="leadContact" class="text-xs font-bold text-gray-700">② ご担当者名・お電話番号（またはメール）</label>
+              <input id="leadContact" type="text" maxlength="200" placeholder="例：代表取締役 山田 / 090-XXXX-XXXX" class="w-full border-2 border-gray-300 rounded-lg px-3 py-2 mt-1 focus:outline-none focus:border-emerald-600">
+            </div>
+            <div>
+              <label for="leadNote" class="text-xs font-bold text-gray-700">③ ご相談内容（任意）</label>
+              <input id="leadNote" type="text" maxlength="300" placeholder="" class="w-full border-2 border-gray-300 rounded-lg px-3 py-2 mt-1 focus:outline-none focus:border-emerald-600">
+            </div>
+          </div>
+
+          <label class="flex items-start gap-2 text-xs text-gray-700 leading-snug">
+            <input id="leadConsent" type="checkbox" class="mt-0.5 shrink-0">
+            <span><strong>（必須）</strong>入力内容を提携先（<span id="leadPartner"></span>）に提供し、提携先から直接連絡を受けることに同意します（<a href="#" onclick="openPrivacy(event)" class="underline text-emerald-700">プライバシー方針</a>）。</span>
+          </label>
+
+          <p id="leadErr" class="hidden text-xs font-bold text-rose-600"></p>
+          <div class="flex justify-end gap-2 pt-1">
+            <button onclick="closeLead()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-5 py-2.5 rounded-xl text-xs transition cursor-pointer">閉じる</button>
+            <button id="leadBtn" onclick="submitLeadForm()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-6 py-2.5 rounded-xl text-sm transition shadow-lg cursor-pointer">📩 この内容で相談する</button>
+          </div>
+        </div>
+
+        <div id="leadDone" class="hidden bg-emerald-900 text-white p-4 rounded-xl shadow-lg font-bold text-sm text-center"></div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="bg-amber-50 border-2 border-amber-300 p-5 rounded-xl flex flex-col justify-between space-y-4 shadow-sm">
+            <div>
+              <span class="bg-amber-200 text-amber-950 text-xs font-extrabold px-2.5 py-1 rounded">専任の技術者を増やしたい社長様へ</span>
+              <h3 class="font-bold text-base mt-2 text-gray-900">1級土木施工管理技士の採用相談（人材紹介）</h3>
+              <p class="text-xs text-gray-700 mt-1 leading-relaxed">公共工事で専任の技術者として置くには、入札の申込日以前に3ヶ月以上の雇用関係が必要です（派遣社員は置けません）。次の入札に向けて、早めの採用をご検討ください。</p>
+            </div>
+            <button onclick="openLead('hire')" class="lead-open w-full bg-amber-600 hover:bg-amber-700 text-white font-extrabold py-3 rounded-lg text-sm transition shadow cursor-pointer">👷 採用の相談をする（無料）</button>
+          </div>
+
+          <div class="bg-blue-50 border-2 border-blue-300 p-5 rounded-xl flex flex-col justify-between space-y-4 shadow-sm">
+            <div>
+              <span class="bg-blue-200 text-blue-950 text-xs font-extrabold px-2.5 py-1 rounded">技術者ごと事業を引き継ぎたい社長様へ</span>
+              <h3 class="font-bold text-base mt-2 text-gray-900">事業承継・M&Aの相談</h3>
+              <p class="text-xs text-gray-700 mt-1 leading-relaxed">提携するM&A仲介会社から、北多摩エリアの土木会社の譲渡・譲受に関する情報をご案内します。</p>
+            </div>
+            <button onclick="openLead('ma')" class="lead-open w-full bg-blue-700 hover:bg-blue-800 text-white font-extrabold py-3 rounded-lg text-sm transition shadow cursor-pointer">🏢 M&Aの相談をする（無料）</button>
+          </div>
+
+          <div class="bg-slate-50 border-2 border-slate-300 p-5 rounded-xl flex flex-col justify-between space-y-4 shadow-sm">
+            <div>
+              <span class="bg-slate-200 text-slate-900 text-xs font-extrabold px-2.5 py-1 rounded">着工資金にお悩みの社長様へ</span>
+              <h3 class="font-bold text-base mt-2 text-gray-900">資金調達の相談先のご紹介</h3>
+              <p class="text-xs text-gray-700 mt-1 leading-relaxed">ご相談内容を提携先（登録貸金業者・ファクタリング会社等）にお伝えし、提携先から直接ご案内します。当サイトは融資の勧誘や条件の交渉は行いません。</p>
+            </div>
+            <button onclick="openLead('fund')" class="lead-open w-full bg-slate-700 hover:bg-slate-800 text-white font-extrabold py-3 rounded-lg text-sm transition shadow cursor-pointer">💴 相談先の紹介を受ける（無料）</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 新着公告のメール通知 -->
+      <div id="alertCard" class="bg-white p-4 md:p-6 rounded-xl shadow-sm border-2 border-sky-300 space-y-3">
+        <div>
+          <h2 class="text-base md:text-lg font-bold text-gray-900">📬 新着の工事公告を毎朝メールで受け取る（無料）</h2>
+          <p class="text-xs text-gray-600 mt-0.5">条件に合う新しい公告が出た日の朝に、まとめて1通お送りします。配信はメール内のリンクからいつでも停止できます。</p>
+        </div>
+        <div class="space-y-2 text-xs">
+          <div><div class="font-bold text-gray-700 mb-1">市（選ばなければ17市すべて）</div><div id="alCities" class="flex flex-wrap gap-x-3 gap-y-1"></div></div>
+          <div><div class="font-bold text-gray-700 mb-1">工種（選ばなければすべて）</div><div id="alKinds" class="flex flex-wrap gap-x-3 gap-y-1"></div></div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-2 items-end">
+            <label class="space-y-1"><span class="font-bold text-gray-700">予定価格の下限（万円・任意）</span><input id="alMin" type="number" min="0" step="100" placeholder="例：4500" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5"></label>
+            <label class="space-y-1 md:col-span-2"><span class="font-bold text-gray-700">メールアドレス</span><input id="alEmail" type="email" maxlength="200" placeholder="例：info@example.co.jp" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5"></label>
+          </div>
+          <label class="flex items-start gap-2 text-[11px] text-gray-700 leading-snug"><input id="alConsent" type="checkbox" class="mt-0.5 shrink-0"><span><strong>（必須）</strong>入力したメールアドレスに、条件に合う新着公告のお知らせを送ることに同意します（<a href="#" onclick="openPrivacy(event)" class="underline text-emerald-700">プライバシー方針</a>）。</span></label>
+          <p id="alErr" class="hidden text-xs font-bold text-rose-600"></p>
+          <p id="alDone" class="hidden text-xs font-bold text-emerald-700"></p>
+          <div class="flex justify-end"><button id="alBtn" onclick="submitAlert()" class="bg-sky-700 hover:bg-sky-800 text-white font-extrabold px-5 py-2.5 rounded-xl text-sm cursor-pointer">確認メールを送る</button></div>
+        </div>
+      </div>
+
+      <!-- プライバシー方針・出典 -->
+      <details id="privacy" class="bg-white border border-gray-200 rounded-xl p-4 text-xs">
+        <summary class="font-bold text-gray-800 cursor-pointer">プライバシー方針（個人情報の取り扱い）</summary>
+        <div id="privacyBody" class="mt-3 space-y-2 leading-relaxed text-gray-700"></div>
+      </details>
+
+      <div class="text-[11px] text-gray-500 leading-relaxed px-1 pb-4">
+        案件情報は、中小企業庁「<a href="https://www.kkj.go.jp/s/" target="_blank" rel="noopener noreferrer" class="underline">官公需情報ポータルサイト</a>」の検索APIを利用して取得しています。最低制限価格の範囲・推定空き・参加可能性は公開情報からの目安であり、結果を保証するものではありません。入札の際は必ず各発注機関の公告・入札説明書をご確認ください。
+      </div>
+    </div>
+  </div>
+
+  <!-- 感想を送る（タップで回答） -->
+  <button id="fbBtn" onclick="openFeedback()" class="hidden fixed bottom-4 right-4 z-40 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm px-4 py-3 rounded-full shadow-lg cursor-pointer">📝 感想を送る</button>
+  <div id="fbModal" class="hidden fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center" onclick="if (event.target === this) closeFeedback()">
+    <div class="bg-white w-full sm:max-w-lg rounded-t-2xl sm:rounded-2xl shadow-xl max-h-[90vh] overflow-y-auto p-4 space-y-4">
+      <div class="flex items-start justify-between gap-2">
+        <div>
+          <h2 class="text-base font-extrabold text-gray-900">📝 使ってみた感想（30秒）</h2>
+          <p class="text-[11px] text-gray-500">当てはまるものをタップしてください。答えたい質問だけで大丈夫です。</p>
+        </div>
+        <button onclick="closeFeedback()" class="text-gray-400 hover:text-gray-700 text-xl font-bold px-2 cursor-pointer" aria-label="閉じる">×</button>
+      </div>
+      <div id="fbForm" class="space-y-4"></div>
+      <div id="fbMissingBox" class="hidden">
+        <label class="block text-xs font-bold text-gray-700 mb-1">抜けている発注者・案件（任意）</label>
+        <input id="fbMissing" type="text" maxlength="300" placeholder="例：東京都の建設事務所、〇〇市の舗装工事" class="w-full border-2 border-gray-300 rounded-lg px-2 py-2 text-sm">
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">ひとこと（任意）</label>
+        <textarea id="fbComment" rows="2" maxlength="1000" placeholder="毎日開きたくなる機能、分かりにくかった所など" class="w-full border-2 border-gray-300 rounded-lg px-2 py-2 text-sm"></textarea>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1">お名前・会社名（任意）</label>
+        <input id="fbName" type="text" maxlength="100" placeholder="例：〇〇建設 山田" class="w-full border-2 border-gray-300 rounded-lg px-2 py-2 text-sm">
+      </div>
+      <p class="text-[11px] text-gray-500">回答は運営者だけが見て、ツールの改善に使います（<a href="#" onclick="closeFeedback(); openPrivacy(event)" class="underline text-emerald-700">プライバシー方針</a>）。</p>
+      <p id="fbErr" class="hidden text-xs font-bold text-rose-600"></p>
+      <button id="fbSend" onclick="sendFeedback()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3 rounded-xl text-sm cursor-pointer">送信する</button>
+    </div>
+  </div>
+  <div id="fbThanks" class="hidden fixed bottom-20 right-4 left-4 sm:left-auto z-40 bg-slate-900 text-white text-sm font-bold px-4 py-3 rounded-xl shadow-lg">ありがとうございました！いただいた感想は改善に使わせていただきます。</div>
+
+  <script>
+    // ===== 状態 =====
+    const S = {
+      data: null,
+      list: [],
+      cur: null,
+      priceOverride: null,   // 利用者が入力した予定価格（円）
+      sort: 'DEFAULT',
+      city: 'ALL',
+      kind: 'ALL',
+      staff: [],
+      rivals: [],            // 表示できるライバル（解除前は1社目のみ）
+      unlocked: false,
+      leadType: null,
+      company: '',
+      contact: ''
+    };
+    const LEADS = {
+      hire: { title: '1級土木施工管理技士の採用相談', note: '例：令和9年度の入札に向けて1名採用したい' },
+      ma:   { title: '事業承継・M&Aの相談', note: '例：技術者が在籍する会社の譲受を検討したい' },
+      fund: { title: '資金調達の相談先のご紹介', note: '例：落札後の着工資金について相談したい' }
+    };
+
+    // ===== ユーティリティ =====
+    const $ = id => document.getElementById(id);
+    const show = id => $(id).classList.remove('hidden');
+    const hide = id => $(id).classList.add('hidden');
+    function esc(s) {
+      return String(s === null || s === undefined ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+    const yen = n => '¥' + Math.floor(n).toLocaleString('ja-JP');
+    const safeUrl = u => /^https?:\/\//.test(String(u || '')) ? String(u) : '';
+    function jpDate(s) {
+      const m = String(s || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      return m ? `${m[1]}年${Number(m[2])}月${Number(m[3])}日` : (s || '');
+    }
+    function daysUntil(s) {
+      const m = String(s || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (!m) return null;
+      const t = new Date(); t.setHours(0, 0, 0, 0);
+      return Math.round((new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) - t) / 86400000);
+    }
+    const errMsg = e => (e && e.message) ? e.message : String(e);
+    function notice(text) { $('topNoticeText').textContent = text; show('topNotice'); }
+    function setErr(id, text) { const el = $(id); el.textContent = text; text ? show(id) : hide(id); }
+
+    // ===== 起動 =====
+    window.addEventListener('DOMContentLoaded', () => {
+      if (!(window.google && google.script && google.script.run)) {
+        showError('この画面は Google Apps Script のWebアプリとして開いてください。');
+        return;
+      }
+      checkSubscriptionLink();
+      google.script.run
+        .withSuccessHandler(init)
+        .withFailureHandler(e => showError('データの読み込みに失敗しました：' + errMsg(e)))
+        .getAppData();
+    });
+
+    document.addEventListener('click', e => {
+      if (!$('ddWrap').contains(e.target)) closeDropdown();
+    });
+
+    function showError(text) {
+      hide('loadingBox');
+      $('errorBox').textContent = text;
+      show('errorBox');
+    }
+
+    function init(data) {
+      S.data = data || { projects: [], rivalCount: 0 };
+      S.rivals = S.data.firstRival ? [S.data.firstRival] : [];
+      hide('loadingBox');
+      show('mainArea');
+      const failedCities = S.data.syncFailed || [];
+      $('lastSync').textContent = (S.data.lastSync ? `案件データの最終取得：${S.data.lastSync}` : '') +
+        (failedCities.length ? `（${failedCities.join('・')}は通信エラーで取得できなかったため、前回までの案件を表示しています。次回の更新で再取得します）` : '');
+      if (!S.data.operator) show('opWarn');
+      document.querySelectorAll('.lead-open, #unlockBtn').forEach(b => { b.disabled = !S.data.operator; });
+
+      const p = S.data.partners || {};
+      $('partnerListShort').textContent = [p.hire, p.ma, p.fund].filter(Boolean).map(x => x.replace(/（.*?）/g, '')).join('・');
+      renderPrivacy();
+      renderAlertForm();
+      renderQualOptions();
+      loadStaff();
+      renderCityFilter();
+      applyCity('ALL');
+      renderStaff();
+      renderFeedback();
+      checkInvite();
+    }
+
+    // ===== STEP 1 =====
+    // 工種は案件名のキーワードから自動判定する（目安）。上の行から順に当てはめる。
+    const KINDS = [
+      ['設備', /空調|照明|消火|蓄電池|キュービクル|LED|昇降機|エレベーター|給排水|監視カメラ|受変電|ボイラ|ダクト|タンク|井戸|流量計|電気設備|通信設備|防災設備|水槽|システム|装置|発電機|電源|ケーブル|通信線|冷却塔|電話/],
+      ['建築', /改築|トイレ|校舎|庁舎|体育館|模様替|建物|入浴場|単独室/],
+      ['土木', /道路|舗装|街路|築造|下水|管渠|護岸|河川|橋梁|排水|水道|造成|擁壁|電線共同溝|無電柱|側溝|歩道|治水|浚渫|用水|土木|雨水|水路|法面|のり面|公園/],
+      ['建築', /建築|改修|外壁|屋上|防水|解体|内装|新築|増築|耐震|塗装|シーリング|修繕/],
+      ['設備', /設備|電気|機械/]
+    ];
+    const KIND_ORDER = ['土木', '建築', '設備', 'その他'];
+    function kindOf(p) {
+      const hit = KINDS.find(([, re]) => re.test(p.title || ''));
+      return hit ? hit[0] : 'その他';
+    }
+
+    const BTN_ON = 'bg-emerald-500 text-white font-bold';
+    const BTN_OFF = 'bg-slate-800 hover:bg-slate-700 text-gray-300 border border-slate-700';
+    function filterBtn(cls, key, label, active, handler) {
+      return `<button data-key="${esc(key)}" onclick="${handler}(this.dataset.key)" class="${cls} ${active ? BTN_ON : BTN_OFF} px-2.5 py-1 rounded-lg transition cursor-pointer">${esc(label)}</button>`;
+    }
+    function markActive(cls, key) {
+      document.querySelectorAll('.' + cls).forEach(b => {
+        b.className = `${cls} ${b.dataset.key === key ? BTN_ON : BTN_OFF} px-2.5 py-1 rounded-lg transition cursor-pointer`;
+      });
+    }
+
+    function renderCityFilter() {
+      const all = S.data.projects || [];
+      const cityCounts = {}, kindCounts = {};
+      all.forEach(p => {
+        p.kind = kindOf(p);
+        const c = p.city || 'その他';
+        cityCounts[c] = (cityCounts[c] || 0) + 1;
+        kindCounts[p.kind] = (kindCounts[p.kind] || 0) + 1;
+      });
+      $('cityFilter').innerHTML = filterBtn('city-btn', 'ALL', `すべての市（${all.length}）`, true, 'applyCity') +
+        Object.keys(cityCounts).sort((a, b) => cityCounts[b] - cityCounts[a]).map(c => filterBtn('city-btn', c, `${c}（${cityCounts[c]}）`, false, 'applyCity')).join('');
+      $('kindFilter').innerHTML = all.length === 0 ? '' :
+        '<span class="text-gray-400 font-bold px-1">工種（案件名から自動判定）:</span>' +
+        filterBtn('kind-btn', 'ALL', `すべて（${all.length}）`, true, 'applyKind') +
+        KIND_ORDER.filter(k => kindCounts[k]).map(k => filterBtn('kind-btn', k, `${k}（${kindCounts[k]}）`, false, 'applyKind')).join('');
+    }
+
+    function applyCity(city) { S.city = city; markActive('city-btn', city); applyFilters(); }
+    function applyKind(kind) { S.kind = kind; markActive('kind-btn', kind); applyFilters(); }
+
+    function applyFilters() {
+      const all = S.data.projects || [];
+      S.list = all.filter(p =>
+        (S.city === 'ALL' || (p.city || 'その他') === S.city) &&
+        (S.kind === 'ALL' || p.kind === S.kind));
+      $('countLabel').textContent = S.list.length;
+
+      if (S.list.length === 0) {
+        $('noProjects').textContent = all.length === 0
+          ? '表示できる案件がありません。（運営者の方へ：スプレッドシートの「🏗 入札情報 管理」メニューから ① または ② を実行してください）'
+          : 'この条件に合う案件はありません。市や工種の条件を変えてください。';
+        show('noProjects'); hide('ddWrap'); hide('detailCard');
+        S.cur = null;
+        renderRivals();
+        return;
+      }
+      hide('noProjects'); show('ddWrap'); show('detailCard');
+      renderDropdown();
+      selectProject(0);
+    }
+
+    function renderDropdown() {
+      $('ddList').innerHTML = S.list.map((p, i) => `
+        <div onclick="chooseProject(${i})" class="p-3 hover:bg-slate-700 cursor-pointer transition flex flex-col gap-0.5">
+          <div class="flex flex-wrap items-center gap-2 text-xs">
+            <span class="text-emerald-400 font-bold">${p.openDate ? '【開札 ' + esc(jpDate(p.openDate)) + '】' : '【公告 ' + esc(jpDate(p.cftDate)) + '】'}</span>
+            <span class="text-gray-300">${esc(p.org)}${p.city ? '（' + esc(p.city) + '）' : ''}</span>
+            <span class="bg-slate-700 text-gray-200 px-1.5 rounded">${esc(p.kind || '')}</span>
+          </div>
+          <div class="text-sm font-bold text-white break-words leading-snug">${esc(p.title)}</div>
+        </div>`).join('');
+    }
+
+    function toggleDropdown(e) {
+      if (e) e.stopPropagation();
+      const hidden = $('ddList').classList.contains('hidden');
+      if (hidden) { show('ddList'); $('ddArrow').textContent = '▲'; } else { closeDropdown(); }
+    }
+    function closeDropdown() { hide('ddList'); $('ddArrow').textContent = '▼'; }
+    function chooseProject(i) { closeDropdown(); selectProject(i); }
+
+    function selectProject(i) {
+      S.cur = S.list[i] || S.list[0];
+      S.priceOverride = null;
+      $('priceInput').value = S.cur.price ? Math.round(S.cur.price / 10000) : '';
+      ['mDirect', 'mCommon', 'mSite', 'mGeneral'].forEach(id => { $(id).value = ''; });
+      $('ddDate').textContent = S.cur.openDate ? `【開札 ${jpDate(S.cur.openDate)}】` : `【公告 ${jpDate(S.cur.cftDate)}】`;
+      $('ddOrg').textContent = S.cur.org + (S.cur.city ? `（${S.cur.city}）` : '');
+      $('ddTitle').textContent = S.cur.title;
+      renderAll();
+    }
+
+    function currentPrice() {
+      if (S.priceOverride !== null) return S.priceOverride;
+      return S.cur && S.cur.price ? S.cur.price : null;
+    }
+
+    function onPriceInput() {
+      const man = Number($('priceInput').value);
+      S.priceOverride = man > 0 ? man * 10000 : null;
+      renderAll();
+    }
+    function resetPrice() {
+      S.priceOverride = null;
+      $('priceInput').value = S.cur && S.cur.price ? Math.round(S.cur.price / 10000) : '';
+      renderAll();
+    }
+
+    function renderAll() { renderDetail(); renderModel(); renderRivals(); renderStaff(); }
+
+    // ===== 案件詳細 =====
+    function renderDetail() {
+      const p = S.cur;
+      if (!p) return;
+      const price = currentPrice();
+
+      const sb = $('senninBadge');
+      if (price === null) {
+        sb.textContent = '専任の要否：予定価格が未確定';
+        sb.className = 'text-xs font-bold px-3 py-1 rounded-full border bg-gray-50 text-gray-600 border-gray-200';
+      } else if (price >= 45000000) {
+        sb.textContent = '専任の技術者が必要な規模（4,500万円以上・目安）';
+        sb.className = 'text-xs font-bold px-3 py-1 rounded-full border bg-blue-50 text-blue-700 border-blue-200';
+      } else {
+        sb.textContent = '専任不要の規模（4,500万円未満・目安）';
+        sb.className = 'text-xs font-bold px-3 py-1 rounded-full border bg-emerald-50 text-emerald-700 border-emerald-200';
+      }
+      $('priceKindBadge').textContent = '予定価格：' + (p.priceKind || '不明');
+
+      const d = daysUntil(p.openDate);
+      if (d !== null && d >= 0) { $('daysBadge').textContent = d === 0 ? '本日開札' : `開札まであと${d}日`; show('daysBadge'); } else { hide('daysBadge'); }
+
+      const u = safeUrl(p.url);
+      if (u) { $('urlBadge').href = u; show('urlBadge'); } else { hide('urlBadge'); }
+      if (p.openDate) { $('calBadge').href = calendarUrl(p); show('calBadge'); } else { hide('calBadge'); }
+
+      $('projTitle').textContent = p.title;
+      const meta = [
+        ['発注機関', p.org],
+        ['履行場所', p.location || p.city || '公告で確認'],
+        ['公告日', jpDate(p.cftDate) || '—'],
+        ['開札日', p.openDate ? jpDate(p.openDate) : '公告で確認'],
+        ['入札方式', p.procedure || '公告で確認']
+      ];
+      $('projMeta').innerHTML = meta.map(([k, v]) => `<div><dt class="inline font-bold text-gray-700">${esc(k)}：</dt><dd class="inline">${esc(v)}</dd></div>`).join('');
+
+      if (p.priceEvidence) {
+        $('priceEvidence').textContent = `公告本文の記載：「${p.priceEvidence}…」`;
+        show('priceEvidence');
+      } else { hide('priceEvidence'); }
+
+      if (price !== null) {
+        $('rangeVal').textContent = `${yen(price * 0.75)} 〜 ${yen(price * 0.92)}`;
+        $('rangeSub').textContent = '予定価格の75%〜92%（この範囲で算定式により決まります）';
+        $('safeLineVal').textContent = `${yen(price * 0.92)} 以上`;
+      } else {
+        $('rangeVal').textContent = '予定価格を入力してください';
+        $('rangeSub').textContent = '予定価格がわかると、範囲を計算できます';
+        $('safeLineVal').textContent = '—';
+      }
+
+      if (S.priceOverride !== null) {
+        $('basePriceVal').textContent = `入力した予定価格：${yen(S.priceOverride)}`;
+        if (p.price) show('resetPriceBtn'); else hide('resetPriceBtn');
+      } else if (p.price) {
+        $('basePriceVal').textContent = `公告記載の予定価格：${yen(p.price)}`;
+        hide('resetPriceBtn');
+      } else {
+        $('basePriceVal').textContent = p.priceKind === '事後公表' ? '予定価格は事後公表です（公告に金額がありません）' : '公告本文から予定価格を読み取れませんでした';
+        hide('resetPriceBtn');
+      }
+    }
+
+    // ===== 中央公契連モデル計算 =====
+    function renderModel() {
+      const v = id => { const n = Number($(id).value); return n > 0 ? n * 10000 : 0; };
+      const dir = v('mDirect'), com = v('mCommon'), site = v('mSite'), gen = v('mGeneral');
+      const el = $('modelResult');
+      if (!(dir || com || site || gen)) { el.textContent = ''; return; }
+      const base = currentPrice() || (dir + com + site + gen);
+      const raw = dir * 0.97 + com * 0.90 + site * 0.90 + gen * 0.68;
+      const lo = base * 0.75, hi = base * 0.92;
+      const val = Math.min(Math.max(raw, lo), hi);
+      const pct = (val / base * 100).toFixed(2);
+      let note = '';
+      if (raw < lo) note = '（計算値が75%未満のため75%に設定）';
+      if (raw > hi) note = '（計算値が92%を超えるため92%に設定）';
+      el.textContent = `中央公契連モデルの最低制限価格：約 ${yen(val)}（予定価格の${pct}%）${note}`;
+    }
+
+    // ===== STEP 2 =====
+    function judgeRival(r, price) {
+      const free = (r.engineers !== null && r.activeJobs !== null) ? r.engineers - r.activeJobs : null;
+      if (price !== null && price < 45000000) return { rank: 3, free, cls: 'bg-emerald-100 text-emerald-800', label: '専任不要の規模', note: '技術者の空きに関係なく参加できます' };
+      if (free === null) return { rank: 1, free, cls: 'bg-gray-100 text-gray-600', label: '判定できません', note: '手持ち工事件数のデータがありません' };
+      if (free > 0) return { rank: 3, free, cls: 'bg-emerald-100 text-emerald-800', label: `参加の可能性が高い`, note: `推定空き${free}名（公共工事分のみ）` };
+      if (price !== null && price < 100000000) return { rank: 2, free, cls: 'bg-amber-100 text-amber-800', label: '兼任特例で参加の可能性', note: '1億円未満のため、移動概ね2時間以内などの要件を満たせば兼任できます' };
+      if (price === null) return { rank: 1, free, cls: 'bg-gray-100 text-gray-600', label: '推定空きなし', note: '予定価格が未確定のため、兼任特例の可否は不明' };
+      return { rank: 0, free, cls: 'bg-rose-100 text-rose-700', label: '推定空きなし', note: '1億円以上のため、移動2時間以内の兼任特例は使えません' };
+    }
+
+    function rivalRowHtml(r, price) {
+      const j = judgeRival(r, price);
+      const n = v => v === null || v === undefined ? '—' : v;
+      const bid = (price !== null && r.avgRate !== null) ? `約 ${yen(price * r.avgRate / 100)}` : '';
+      const src = [
+        safeUrl(r.srcKeishin) ? `<a href="${esc(r.srcKeishin)}" target="_blank" rel="noopener noreferrer" class="underline text-emerald-700">経審</a>` : '',
+        safeUrl(r.srcResults) ? `<a href="${esc(r.srcResults)}" target="_blank" rel="noopener noreferrer" class="underline text-emerald-700">入札結果</a>` : ''
+      ].filter(Boolean).join('<br>');
+      const noWins = r.wins3m === 0 ? `<span class="text-rose-600 font-bold ml-1">直近3ヶ月 落札なし</span>` : '';
+      return `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="py-3.5 px-2 w-[24%]">
+            <div class="font-bold text-gray-900">${esc(r.name)}</div>
+            <div class="text-xs text-gray-500">${esc(r.hq)}${r.pScore !== null ? ' / 経審P: ' + esc(r.pScore) + '点' : ''}${r.keishinDate ? '（' + esc(jpDate(r.keishinDate)) + '基準）' : ''} ${noWins}</div>
+          </td>
+          <td class="py-3.5 px-2 w-[9%] font-semibold">${r.engineers !== null ? esc(r.engineers) + '名' : '—'}</td>
+          <td class="py-3.5 px-2 w-[12%] text-xs text-gray-600">${r.activeJobs !== null ? '公共 ' + esc(r.activeJobs) + '件' : '—'}<div class="text-[10px] text-gray-400">民間は不明</div></td>
+          <td class="py-3.5 px-2 w-[9%] font-bold ${j.free === null ? 'text-gray-400' : (j.free > 0 ? 'text-emerald-700' : 'text-rose-600')}">${j.free === null ? '—' : Math.max(0, j.free) + '名'}</td>
+          <td class="py-3.5 px-2 w-[24%]"><span class="inline-block ${j.cls} text-xs font-bold px-2.5 py-1 rounded-full">${esc(j.label)}</span><div class="text-[11px] text-gray-500 mt-1">${esc(j.note)}</div></td>
+          <td class="py-3.5 px-2 w-[14%]"><div class="font-bold text-gray-900">${r.avgRate !== null ? esc(r.avgRate.toFixed(2)) + '%' : '—'}</div><div class="text-xs text-gray-500">${bid}</div></td>
+          <td class="py-3.5 px-2 w-[8%] text-xs">${src}${r.checkedAt ? '<div class="text-[10px] text-gray-400">' + esc(jpDate(r.checkedAt)) + '確認</div>' : ''}</td>
+        </tr>`;
+    }
+
+    function placeholderRowHtml() {
+      return `
+        <tr class="blur-lock">
+          <td class="py-3.5 px-2 w-[24%]"><div class="font-bold text-gray-900">●●●●建設株式会社</div><div class="text-xs text-gray-500">●●市 / 経審P: ●●●点</div></td>
+          <td class="py-3.5 px-2 w-[9%] font-semibold">●名</td>
+          <td class="py-3.5 px-2 w-[12%] text-xs text-gray-600">公共 ●件</td>
+          <td class="py-3.5 px-2 w-[9%] font-bold">●名</td>
+          <td class="py-3.5 px-2 w-[24%]"><span class="inline-block bg-gray-100 text-gray-600 text-xs font-bold px-2.5 py-1 rounded-full">●●●●●●</span></td>
+          <td class="py-3.5 px-2 w-[14%]"><div class="font-bold">●●.●●%</div></td>
+          <td class="py-3.5 px-2 w-[8%] text-xs">●●</td>
+        </tr>`;
+    }
+
+    function sortedRivals(price) {
+      const list = S.rivals.slice();
+      if (S.sort === 'LIKELY') list.sort((a, b) => judgeRival(b, price).rank - judgeRival(a, price).rank);
+      if (S.sort === 'RATE') list.sort((a, b) => (a.avgRate === null ? 999 : a.avgRate) - (b.avgRate === null ? 999 : b.avgRate));
+      return list;
+    }
+
+    function renderRivals() {
+      const total = (S.data && S.data.rivalCount) || 0;
+      const price = S.cur ? currentPrice() : null;
+
+      if (total === 0) {
+        show('rivalEmpty'); hide('rivalTableWrap'); hide('sortGroup');
+        $('verdictText').textContent = 'ライバル企業のデータは準備中です。経審と入札結果をもとに、出典付きで整備しています。';
+        return;
+      }
+      hide('rivalEmpty'); show('rivalTableWrap'); show('sortGroup');
+
+      const list = S.unlocked ? sortedRivals(price) : S.rivals.slice(0, 1);
+      $('rivalBody').innerHTML = list.map(r => rivalRowHtml(r, price)).join('');
+
+      const lockedN = S.unlocked ? 0 : Math.max(0, total - 1);
+      if (lockedN > 0) {
+        $('lockedBody').innerHTML = Array.from({ length: Math.min(lockedN, 9) }, placeholderRowHtml).join('');
+        $('lockedCount').textContent = lockedN;
+        $('totalRivalCount').textContent = total;
+        $('lockWrap').style.minHeight = '420px';
+        show('unlockOverlay'); show('lockWrap');
+      } else {
+        $('lockedBody').innerHTML = '';
+        $('lockWrap').style.minHeight = '0';
+        hide('unlockOverlay'); hide('lockWrap');
+      }
+
+      if (!S.unlocked && total > 1) {
+        const j = S.rivals[0] ? judgeRival(S.rivals[0], price) : null;
+        $('verdictText').innerHTML = `登録済みのライバル<strong>${total}社</strong>のうち、1社目を表示中です${j ? `（${esc(S.rivals[0].name)}：${esc(j.label)}）` : ''}。残り${lockedN}社は下の表から無料で表示できます。`;
+      } else {
+        const groups = { 3: 0, 2: 0, 1: 0, 0: 0 };
+        S.rivals.forEach(r => { groups[judgeRival(r, price).rank]++; });
+        $('verdictText').innerHTML = `ライバル${S.rivals.length}社のうち、参加の可能性が高いのは<strong>${groups[3]}社</strong>、兼任特例で参加の可能性があるのは<strong>${groups[2]}社</strong>、データ不足などで判定できないのは${groups[1]}社、空きがなく参加が難しいのは${groups[0]}社です。`;
+      }
+    }
+
+    function changeSort(mode, btnEl) {
+      S.sort = mode;
+      document.querySelectorAll('.sort-btn').forEach(b => {
+        b.className = 'sort-btn text-gray-600 hover:text-slate-900 px-2.5 py-1 rounded transition cursor-pointer';
+      });
+      btnEl.className = 'sort-btn bg-white text-slate-900 font-bold px-2.5 py-1 rounded shadow-sm transition cursor-pointer';
+      renderRivals();
+    }
+
+    function unlockData() {
+      const company = $('inCompany').value.trim();
+      const contact = $('inContact').value.trim();
+      if (!company || !contact) return setErr('unlockErr', '貴社名と連絡先を入力してください。');
+      if (!$('inPrivacy').checked) return setErr('unlockErr', 'プライバシー方針への同意が必要です。');
+      setErr('unlockErr', '');
+      const btn = $('unlockBtn');
+      btn.disabled = true; btn.textContent = '送信中…';
+      google.script.run
+        .withSuccessHandler(list => {
+          S.rivals = Array.isArray(list) ? list : S.rivals;
+          S.unlocked = true;
+          S.company = company; S.contact = contact;
+          renderRivals();
+          notice(`全${S.rivals.length}社のデータを表示しました。`);
+        })
+        .withFailureHandler(e => {
+          setErr('unlockErr', '送信できませんでした：' + errMsg(e));
+          btn.disabled = false; btn.textContent = '🔓 送信して全社を表示する';
+        })
+        .unlockRivals({
+          company, contact,
+          privBusy: $('inPriv').value,
+          privacyConsent: true,
+          partnerConsent: $('inPartner').checked,
+          projectTitle: S.cur ? S.cur.title : ''
+        });
+    }
+
+    // ===== STEP 3 =====
+    function openLead(type) {
+      if (!S.data.operator) return;
+      S.leadType = type;
+      $('leadTitle').textContent = LEADS[type].title;
+      $('leadProj').textContent = S.cur ? S.cur.title : '（案件未選択）';
+      $('leadPartner').textContent = (S.data.partners || {})[type] || '提携先';
+      $('leadNote').placeholder = LEADS[type].note;
+      if (S.company && !$('leadCompany').value) $('leadCompany').value = S.company;
+      if (S.contact && !$('leadContact').value) $('leadContact').value = S.contact;
+      $('leadConsent').checked = false;
+      setErr('leadErr', '');
+      hide('leadDone');
+      show('leadBox');
+      $('leadBox').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    function closeLead() { hide('leadBox'); }
+
+    function submitLeadForm() {
+      const company = $('leadCompany').value.trim();
+      const contact = $('leadContact').value.trim();
+      if (!company || !contact) return setErr('leadErr', '貴社名と連絡先を入力してください。');
+      if (!$('leadConsent').checked) return setErr('leadErr', '提携先への提供への同意が必要です。');
+      setErr('leadErr', '');
+      const btn = $('leadBtn');
+      btn.disabled = true; btn.textContent = '送信中…';
+      google.script.run
+        .withSuccessHandler(() => {
+          S.company = company; S.contact = contact;
+          btn.disabled = false; btn.textContent = '📩 この内容で相談する';
+          hide('leadBox');
+          $('leadDone').textContent = `「${LEADS[S.leadType].title}」を受け付けました。提携先からご連絡します。`;
+          show('leadDone');
+        })
+        .withFailureHandler(e => {
+          setErr('leadErr', '送信できませんでした：' + errMsg(e));
+          btn.disabled = false; btn.textContent = '📩 この内容で相談する';
+        })
+        .submitLead({
+          type: S.leadType, company, contact,
+          note: $('leadNote').value,
+          partnerConsent: true,
+          projectTitle: S.cur ? S.cur.title : ''
+        });
+    }
+
+    // ===== Googleカレンダー =====
+    function calendarUrl(p) {
+      const d = p.openDate.replace(/-/g, '');
+      const n = new Date(Number(d.slice(0, 4)), Number(d.slice(4, 6)) - 1, Number(d.slice(6, 8)) + 1);
+      const next = n.getFullYear() + String(n.getMonth() + 1).padStart(2, '0') + String(n.getDate()).padStart(2, '0');
+      const details = [p.org, p.url ? '公告：' + p.url : '', '北多摩 公共工事 入札情報ツールより'].filter(Boolean).join('\n');
+      return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + encodeURIComponent('【開札】' + p.title) +
+        '&dates=' + d + '/' + next + '&details=' + encodeURIComponent(details);
+    }
+
+    // ===== 新着公告のメール通知 =====
+    function renderAlertForm() {
+      const cities = S.data.cities || [];
+      $('alCities').innerHTML = cities.map(c => `<label class="inline-flex items-center gap-1"><input type="checkbox" class="al-city" value="${esc(c)}">${esc(c)}</label>`).join('');
+      $('alKinds').innerHTML = KIND_ORDER.map(k => `<label class="inline-flex items-center gap-1"><input type="checkbox" class="al-kind" value="${esc(k)}">${esc(k)}</label>`).join('');
+      $('alBtn').disabled = !S.data.alertsEnabled;
+    }
+
+    function submitAlert() {
+      const email = $('alEmail').value.trim();
+      setErr('alErr', ''); hide('alDone');
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setErr('alErr', 'メールアドレスの形式を確認してください。');
+      if (!$('alConsent').checked) return setErr('alErr', 'メール受信への同意が必要です。');
+      const payload = {
+        email,
+        cities: [...document.querySelectorAll('.al-city:checked')].map(x => x.value),
+        kinds: [...document.querySelectorAll('.al-kind:checked')].map(x => x.value),
+        minMan: Number($('alMin').value) || 0,
+        consent: true
+      };
+      const btn = $('alBtn');
+      btn.disabled = true; btn.textContent = '送信中…';
+      google.script.run
+        .withSuccessHandler(() => {
+          btn.disabled = false; btn.textContent = '確認メールを送る';
+          $('alDone').textContent = `${email} に確認メールを送りました。メール内のリンクを開いて登録を完了してください（届かないときは迷惑メールフォルダもご確認ください）。`;
+          show('alDone');
+        })
+        .withFailureHandler(e => {
+          btn.disabled = false; btn.textContent = '確認メールを送る';
+          setErr('alErr', '送信できませんでした：' + errMsg(e));
+        })
+        .subscribeAlerts(payload);
+    }
+
+    // ===== 自社の技術者チェック（この端末のブラウザだけに保存） =====
+    const QUALS = ['1級土木施工管理技士', '2級土木施工管理技士', '1級建築施工管理技士', '2級建築施工管理技士', '1級管工事施工管理技士', '2級管工事施工管理技士', '1級電気工事施工管理技士', '2級電気工事施工管理技士', 'その他（実務経験など）'];
+    const STAFF_KEY = 'kitatama_staff_v1';
+    let staffStoreOk = true;
+
+    function loadStaff() {
+      try {
+        const v = JSON.parse(localStorage.getItem(STAFF_KEY) || '[]');
+        S.staff = Array.isArray(v) ? v : [];
+      } catch (e) { S.staff = []; staffStoreOk = false; }
+    }
+    function saveStaff() {
+      try { localStorage.setItem(STAFF_KEY, JSON.stringify(S.staff)); staffStoreOk = true; }
+      catch (e) { staffStoreOk = false; }
+    }
+    function renderQualOptions() { $('sfQual').innerHTML = QUALS.map(q => `<option>${esc(q)}</option>`).join(''); }
+    function toggleStaffForm() { $('staffForm').classList.toggle('hidden'); setErr('sfErr', ''); }
+    function onStaffStatus() { if ($('sfStatus').value === 'sennin') show('sfSenninBox'); else hide('sfSenninBox'); }
+
+    function addStaff() {
+      const name = $('sfName').value.trim();
+      const hired = $('sfHired').value;
+      if (!name) return setErr('sfErr', '呼び名を入力してください。');
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(hired)) return setErr('sfErr', '雇用開始日を入力してください。');
+      const t = {
+        name, hired, qual: $('sfQual').value, kanri: $('sfKanri').checked, status: $('sfStatus').value,
+        curAmt: Number($('sfCurAmt').value) || 0, curEnd: $('sfCurEnd').value || ''
+      };
+      if (t.status === 'sennin' && !t.curAmt) return setErr('sfErr', '専任で配置中の工事の請負金額を入力してください。');
+      S.staff.push(t);
+      saveStaff();
+      ['sfName', 'sfHired', 'sfCurAmt', 'sfCurEnd'].forEach(id => { $(id).value = ''; });
+      $('sfKanri').checked = false; $('sfStatus').value = 'free'; onStaffStatus();
+      hide('staffForm');
+      renderStaff();
+    }
+    function removeStaff(i) { S.staff.splice(i, 1); saveStaff(); renderStaff(); }
+
+    function ymdToDate(ymd) { const a = String(ymd).split('-').map(Number); return new Date(a[0], a[1] - 1, a[2]); }
+    function qualFits(qual, kind) {
+      if (kind === '土木') return /土木/.test(qual);
+      if (kind === '建築') return /建築/.test(qual);
+      if (kind === '設備') return /管工事|電気工事/.test(qual);
+      return null;
+    }
+
+    function evalStaff(t, p, price) {
+      const a = String(t.hired).split('-').map(Number);
+      const okDate = new Date(a[0], a[1] - 1 + 3, a[2]);
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const emp = okDate <= today
+        ? { ok: true, text: '満たしている' }
+        : { ok: false, text: `${okDate.getFullYear()}年${okDate.getMonth() + 1}月${okDate.getDate()}日に3か月` };
+      if (!p) return { emp, place: { cls: 'gray', text: '案件を選んでください' } };
+      const kind = p.kind || kindOf(p);
+      if (qualFits(t.qual, kind) === false) return { emp, place: { cls: 'red', text: `資格が工種（${kind}）に合っていない可能性` } };
+      let place;
+      if (price === null) place = { cls: 'gray', text: '予定価格が未確定のため、専任の要否が不明' };
+      else if (price < 45000000) place = { cls: 'green', text: '専任不要の規模：ほかの現場と兼ねて配置できます' };
+      else if (t.status === 'free') place = emp.ok ? { cls: 'green', text: '専任で配置できます' } : { cls: 'amber', text: '申込日までに雇用3か月を満たすか要確認' };
+      else if (t.status === 'nonsennin') place = { cls: 'amber', text: '専任になるため、いまの現場を外れる調整が必要' };
+      else if (t.curEnd && p.openDate && ymdToDate(t.curEnd) < ymdToDate(p.openDate)) place = { cls: 'amber', text: 'いまの工事は開札日までに工期が終わる予定：着工時に配置できる可能性' };
+      else if (price < 100000000 && t.curAmt * 10000 < 100000000) place = { cls: 'amber', text: '兼任特例の可能性（どちらも1億円未満、2現場まで、移動概ね2時間以内、ICTでの確認などの要件）' };
+      else place = { cls: 'red', text: '専任で配置中のため配置できません' };
+      return { emp, place };
+    }
+
+    function renderStaff() {
+      const list = S.staff || [];
+      const p = S.cur;
+      const price = p ? currentPrice() : null;
+      const color = { green: 'bg-emerald-100 text-emerald-800', amber: 'bg-amber-100 text-amber-800', red: 'bg-rose-100 text-rose-700', gray: 'bg-gray-100 text-gray-600' };
+      if (!list.length) {
+        $('staffBody').innerHTML = '';
+        $('staffSummary').textContent = staffStoreOk
+          ? '自社の技術者を登録すると、選んだ案件に配置できるかを自動で判定します。'
+          : 'このブラウザでは保存できないため、登録内容はページを閉じると消えます。';
+        return;
+      }
+      const res = list.map(t => evalStaff(t, p, price));
+      $('staffBody').innerHTML = list.map((t, i) => `
+        <tr>
+          <td class="py-2 px-2 font-bold">${esc(t.name)}</td>
+          <td class="py-2 px-2 text-xs">${esc(t.qual)}${t.kanri ? '<div class="text-[10px] text-gray-500">監理技術者資格者証あり</div>' : ''}</td>
+          <td class="py-2 px-2 text-xs ${res[i].emp.ok ? 'text-emerald-700' : 'text-amber-700'}">${esc(res[i].emp.text)}</td>
+          <td class="py-2 px-2"><span class="inline-block ${color[res[i].place.cls]} text-xs font-bold px-2 py-1 rounded">${esc(res[i].place.text)}</span></td>
+          <td class="py-2 px-2 text-right"><button onclick="removeStaff(${i})" class="text-[11px] text-gray-400 hover:text-rose-600 underline cursor-pointer">削除</button></td>
+        </tr>`).join('');
+      const can = res.filter(r => r.place.cls === 'green').length;
+      const maybe = res.filter(r => r.place.cls === 'amber').length;
+      $('staffSummary').innerHTML = p
+        ? `この案件に配置できそうな技術者：<strong>${can}名</strong>（条件しだいで可能性あり：${maybe}名）`
+        : '';
+    }
+
+    // ===== メールのリンク（登録の確認・配信の停止） =====
+    // メールソフトがリンクを自動で開いても登録・停止されないよう、ボタンを押したときだけ処理する
+    const SUB = { action: '', token: '' };
+    function checkSubscriptionLink() {
+      try {
+        if (!(google.script.url && google.script.url.getLocation)) return;
+        google.script.url.getLocation(loc => {
+          const p = (loc && loc.parameter) || {};
+          if (p.action !== 'confirm' && p.action !== 'unsub') return;
+          show('subBox');
+          if (!/^[0-9a-f-]{36}$/i.test(p.t || '')) {
+            $('subTitle').textContent = 'リンクが正しくありません';
+            $('subMsg').textContent = 'メールのリンクをそのまま開いてください。';
+            return;
+          }
+          SUB.action = p.action;
+          SUB.token = p.t;
+          $('subTitle').textContent = p.action === 'confirm' ? '📬 メール通知の登録' : '📭 メール通知の停止';
+          $('subMsg').textContent = '下のボタンを押してください。';
+          $('subBtn').textContent = p.action === 'confirm' ? '登録を完了する' : '配信を停止する';
+          show('subBtn');
+        });
+      } catch (e) {
+        // 案内が出ないだけで、ほかの機能には影響しない
+      }
+    }
+    function doSubscriptionAction() {
+      const btn = $('subBtn');
+      btn.disabled = true;
+      const runner = google.script.run
+        .withSuccessHandler(m => { $('subMsg').textContent = m; hide('subBtn'); })
+        .withFailureHandler(e => { $('subMsg').textContent = 'エラー：' + errMsg(e); btn.disabled = false; });
+      if (SUB.action === 'confirm') runner.confirmSubscription(SUB.token);
+      else runner.stopSubscription(SUB.token);
+    }
+
+    // ===== 感想（タップで回答） =====
+    const FB = { ans: {}, src: '' };
+
+    function renderFeedback() {
+      const qs = S.data.feedbackQuestions || [];
+      if (!qs.length || !S.data.operator) return;
+      $('fbForm').innerHTML = qs.map(q => `
+        <div>
+          <div class="text-sm font-bold text-gray-900 mb-1.5">${esc(q.q)}</div>
+          <div class="flex flex-wrap gap-1.5">${q.opts.map((o, i) => `<button type="button" class="fb-opt text-xs font-bold px-3 py-2 rounded-full border-2 border-gray-200 bg-white text-gray-700 cursor-pointer" data-q="${esc(q.id)}" data-i="${i}" aria-pressed="false" onclick="pickFeedback(this)">${esc(o)}</button>`).join('')}</div>
+        </div>`).join('');
+      show('fbBtn');
+    }
+
+    function pickFeedback(btn) {
+      const q = (S.data.feedbackQuestions || []).find(x => x.id === btn.dataset.q);
+      if (!q) return;
+      const v = q.opts[Number(btn.dataset.i)];
+      if (q.multi) {
+        const cur = FB.ans[q.id] || [];
+        FB.ans[q.id] = cur.indexOf(v) >= 0 ? cur.filter(x => x !== v) : cur.concat([v]);
+      } else {
+        FB.ans[q.id] = FB.ans[q.id] === v ? '' : v;
+      }
+      document.querySelectorAll('.fb-opt').forEach(b => {
+        if (b.dataset.q !== q.id) return;
+        const val = q.opts[Number(b.dataset.i)];
+        const on = q.multi ? (FB.ans[q.id] || []).indexOf(val) >= 0 : FB.ans[q.id] === val;
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        ['bg-emerald-600', 'text-white', 'border-emerald-600'].forEach(c => b.classList.toggle(c, on));
+        ['bg-white', 'text-gray-700', 'border-gray-200'].forEach(c => b.classList.toggle(c, !on));
+      });
+      if (q.id === 'coverage') {
+        if (FB.ans.coverage === '一部抜けていた' || FB.ans.coverage === 'ほとんど無かった') show('fbMissingBox'); else hide('fbMissingBox');
+      }
+      setErr('fbErr', '');
+    }
+
+    function openFeedback() { setErr('fbErr', ''); show('fbModal'); }
+    function closeFeedback() { hide('fbModal'); }
+
+    function sendFeedback() {
+      const qs = S.data.feedbackQuestions || [];
+      const payload = Object.assign({}, FB.ans, {
+        missing: $('fbMissing').value.trim(),
+        comment: $('fbComment').value.trim(),
+        name: $('fbName').value.trim(),
+        src: FB.src
+      });
+      const any = qs.some(q => q.multi ? (FB.ans[q.id] || []).length : FB.ans[q.id]) || payload.missing || payload.comment;
+      if (!any) return setErr('fbErr', 'どれか1つ以上お答えください。');
+      const btn = $('fbSend');
+      btn.disabled = true; btn.textContent = '送信中…';
+      google.script.run
+        .withSuccessHandler(() => {
+          btn.disabled = false; btn.textContent = '送信する';
+          FB.ans = {};
+          ['fbMissing', 'fbComment', 'fbName'].forEach(id => { $(id).value = ''; });
+          hide('fbMissingBox');
+          renderFeedback();
+          closeFeedback();
+          hide('fbInvite');
+          show('fbThanks');
+          setTimeout(() => hide('fbThanks'), 5000);
+        })
+        .withFailureHandler(e => {
+          btn.disabled = false; btn.textContent = '送信する';
+          setErr('fbErr', '送信できませんでした：' + errMsg(e));
+        })
+        .submitFeedback(payload);
+    }
+
+    // ご意見募集リンク（URLの最後が ?fb=1）から開いたときだけ、上部に案内を出す
+    function checkInvite() {
+      try {
+        if (google.script.url && google.script.url.getLocation) {
+          google.script.url.getLocation(loc => {
+            if (loc && loc.parameter && loc.parameter.fb === '1' && S.data.operator) {
+              FB.src = 'invite';
+              show('fbInvite');
+            }
+          });
+        }
+      } catch (e) {
+        // 案内が出ないだけで、ほかの機能には影響しない
+      }
+    }
+
+    // ===== プライバシー方針 =====
+    function openPrivacy(e) {
+      if (e) e.preventDefault();
+      $('privacy').open = true;
+      $('privacy').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function renderPrivacy() {
+      const op = S.data.operator;
+      const p = S.data.partners || {};
+      const opHtml = op
+        ? `${esc(op.name)}${op.representative ? '（' + esc(op.representative) + '）' : ''}${op.address ? '／所在地：' + esc(op.address) : ''}`
+        : '<span class="text-rose-600 font-bold">未設定（受付停止中）</span>';
+      $('privacyBody').innerHTML = `
+        <p><strong>1. 事業者</strong>：${opHtml}</p>
+        <p><strong>2. 取得する情報</strong>：貴社名、ご担当者名、電話番号またはメールアドレス、稼働中の民間工事の専任数（任意）、ご相談内容、閲覧中の案件名。メール通知を登録した場合は、メールアドレスと通知の条件。「感想を送る」を使った場合は、その回答（お名前・会社名は任意）。なお「自社の技術者チェック」に入力した内容は、お使いのブラウザにだけ保存され、運営者は取得しません。</p>
+        <p><strong>3. 利用目的</strong>：(1) ライバル企業データの表示などの本サービスの提供　(2) 運営者からのご連絡・ご案内　(3) ご本人が同意した場合に限り、下記の提携先への提供　(4) 新着公告のお知らせメールの配信（メール内のリンクからいつでも停止できます）　(5) いただいた感想にもとづくサービスの改善</p>
+        <p><strong>4. 第三者への提供</strong>：ご本人の同意がある場合に限り、ご相談の種類に応じて次の提携先に、上記2の情報を提供します。<br>
+          ・${esc(p.hire || '')}<br>・${esc(p.ma || '')}<br>・${esc(p.fund || '')}<br>
+          同意のない情報は提携先に提供しません。</p>
+        <p><strong>5. 開示・訂正・削除・利用停止・第三者提供の停止のご請求</strong>：${op ? esc(op.contact) : '未設定'} までご連絡ください。</p>
+        <p class="text-gray-400">制定：${esc(S.data.consentVersion || '')}</p>`;
+    }
+  </script>
+</body>
+</html>
