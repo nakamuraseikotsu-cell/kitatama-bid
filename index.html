@@ -191,10 +191,34 @@
         </div>
       </div>
 
+      <!-- 東京都の発注予定：件数だけ表示し、中身は公式サイトで見てもらう（東京都電子調達システム利用規約により転載しない） -->
+      <div id="tokyoCard" class="hidden bg-white border-2 border-indigo-300 rounded-xl p-4 md:p-5 shadow-sm space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="font-extrabold text-gray-900 text-sm md:text-base">🏛 東京都の発注予定（北多摩の工事）</div>
+          <div id="tokyoUpdated" class="text-[11px] text-gray-500"></div>
+        </div>
+        <div id="tokyoCounts" class="flex flex-wrap gap-2 text-sm"></div>
+        <p class="text-xs text-gray-600 leading-relaxed">東京都（建設事務所・水道局・下水道局など）が発注する工事は、都の規約により件名をここには載せられません。件数だけお知らせしますので、中身は公式サイトでご確認ください。</p>
+        <div class="flex flex-col sm:flex-row gap-2">
+          <a id="tokyoSpBtn" href="https://www.e-procurement.metro.tokyo.lg.jp/sp/index.html" target="_blank" rel="noopener" class="flex-1 text-center bg-indigo-700 hover:bg-indigo-800 text-white font-extrabold py-3 rounded-lg text-sm shadow">🏛 東京都の公式サイトで見る（スマホ版）</a>
+          <a id="tokyoPcBtn" href="https://www.e-procurement.metro.tokyo.lg.jp/indexPbi.jsp" target="_blank" rel="noopener" class="text-center bg-white border-2 border-indigo-300 text-indigo-900 font-bold py-3 px-4 rounded-lg text-sm">パソコン版</a>
+        </div>
+        <details class="text-xs text-gray-700">
+          <summary class="cursor-pointer font-bold">探し方（初回だけ30秒）</summary>
+          <ol class="list-decimal ml-5 mt-1 space-y-0.5 leading-relaxed">
+            <li>「発注予定情報」をタップ</li>
+            <li>「調達区分」で「工事」を選ぶ</li>
+            <li>「履行場所の選択」で自社の市にチェック（複数可）</li>
+            <li>「検索」。その前に「この検索条件を保存」を押しておくと、次回は「保存した検索条件から選択」→「検索」の2タップです</li>
+          </ol>
+        </details>
+        <p class="text-[11px] text-gray-500 leading-relaxed">件数は、東京都電子調達システム（入札情報サービス）の発注予定情報を毎朝数えたものです（設計・測量・地質調査は含みません）。リンク先は東京都の公式サイトです。</p>
+      </div>
+
       <!-- 公式の入札ページ（この一覧にない案件の確認用） -->
       <details id="linkBox" class="bg-white border-2 border-slate-200 rounded-xl p-4 text-sm">
         <summary class="font-bold text-gray-900 cursor-pointer">📎 東京都・各市の工事は、公式の入札ページで確認（リンク集）</summary>
-        <p class="text-xs text-gray-600 mt-2 leading-relaxed">上の一覧は、国の「官公需情報ポータルサイト」に載っている公告です。東京都や各市が自分の電子入札システムで出している工事は、下の公式ページで確認してください（この一覧への取り込みは準備中です）。</p>
+        <p class="text-xs text-gray-600 mt-2 leading-relaxed">上の一覧は、国の「官公需情報ポータルサイト」に載っている公告です。東京都や各市が自分の電子入札システムで出している工事は、下の公式ページで確認してください（東京都の工事は上のカードで件数をお知らせしています）。</p>
         <div id="linkList" class="mt-3 space-y-3"></div>
         <p class="text-[11px] text-gray-500 mt-3">リンク先は各発注機関の公式ページです（東京都のページは東京都公式ホームページへのリンクです）。ページの場所が変わっている場合はお知らせください。</p>
       </details>
@@ -595,6 +619,7 @@
       document.querySelectorAll('.lead-open, #unlockBtn').forEach(b => { b.disabled = !S.data.operator; });
 
       renderPartners();
+      renderTokyo();
       renderPrivacy();
       renderAlertForm();
       renderQualOptions();
@@ -650,7 +675,7 @@
         KIND_ORDER.filter(k => kindCounts[k]).map(k => filterBtn('kind-btn', k, `${k}（${kindCounts[k]}）`, false, 'applyKind')).join('');
     }
 
-    function applyCity(city) { S.city = city; markActive('city-btn', city); applyFilters(); }
+    function applyCity(city) { S.city = city; markActive('city-btn', city); applyFilters(); renderTokyo(); }
     function applyKind(kind) { S.kind = kind; markActive('kind-btn', kind); applyFilters(); }
 
     function applyFilters() {
@@ -931,6 +956,27 @@
           partnerConsent: activePartners().length > 0 && $('inPartner').checked,
           projectTitle: S.cur ? S.cur.title : ''
         });
+    }
+
+    // ===== 東京都の発注予定（件数だけ） =====
+    function renderTokyo() {
+      const t = S.data.tokyo;
+      if (!t || !t.enabled) { hide('tokyoCard'); return; }
+      const cities = t.cities || {};
+      const names = Object.keys(cities);
+      if (!names.length) { hide('tokyoCard'); return; }   // まだ一度も数えていない
+      const sel = S.city && S.city !== 'ALL' && cities[S.city] ? [S.city] : names;
+      let open = 0, fresh = 0;
+      sel.forEach(c => { open += cities[c].open || 0; fresh += cities[c].fresh || 0; });
+      const label = sel.length === 1 ? esc(sel[0]) : '北多摩17市';
+      $('tokyoCounts').innerHTML =
+        `<span class="bg-indigo-50 border border-indigo-200 text-indigo-900 font-bold px-3 py-1.5 rounded-lg">${label}：受付中・受付前 <span class="text-lg">${open}</span> 件</span>` +
+        `<span class="${fresh ? 'bg-rose-50 border-rose-200 text-rose-900' : 'bg-gray-50 border-gray-200 text-gray-600'} border font-bold px-3 py-1.5 rounded-lg">昨日からの新着 <span class="text-lg">${fresh}</span> 件</span>`;
+      $('tokyoUpdated').textContent = (t.updatedAt ? '件数の更新：' + t.updatedAt : '') +
+        (t.failed && t.failed.length ? '（' + t.failed.join('・') + 'は数えられなかったため前回の件数）' : '');
+      if (safeUrl(t.spUrl)) $('tokyoSpBtn').href = t.spUrl;
+      if (safeUrl(t.pcUrl)) $('tokyoPcBtn').href = t.pcUrl;
+      show('tokyoCard');
     }
 
     // ===== STEP 3 =====
