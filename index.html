@@ -132,7 +132,7 @@
         <span class="text-slate-400">▶</span>
         <span class="bg-emerald-50 text-emerald-900 border border-emerald-200 px-2 py-1 rounded">② 最低制限価格の範囲とライバルを確認</span>
         <span class="text-slate-400">▶</span>
-        <span class="bg-emerald-50 text-emerald-900 border border-emerald-200 px-2 py-1 rounded">③ 技術者・資金を相談</span>
+        <span id="step3Pill" class="bg-emerald-50 text-emerald-900 border border-emerald-200 px-2 py-1 rounded">③ 新着を毎朝メールで受け取る</span>
       </div>
       <div id="lastSync" class="text-[11px] text-slate-500"></div>
     </div>
@@ -357,7 +357,7 @@
                     <input id="inPrivacy" type="checkbox" class="mt-0.5 shrink-0">
                     <span><strong>（必須）</strong><a href="#" onclick="openPrivacy(event)" class="underline text-emerald-700">プライバシー方針</a>に同意します。入力内容は運営者が記録し、運営者からのご連絡に利用します。</span>
                   </label>
-                  <label class="flex items-start gap-2 text-[11px] text-gray-700 leading-snug">
+                  <label id="inPartnerRow" class="hidden flex items-start gap-2 text-[11px] text-gray-700 leading-snug">
                     <input id="inPartner" type="checkbox" class="mt-0.5 shrink-0">
                     <span><strong>（任意）</strong>提携先（<span id="partnerListShort"></span>）からの案内も希望します。チェックした場合、入力内容を提携先に提供します。</span>
                   </label>
@@ -372,8 +372,8 @@
         </div>
       </div>
 
-      <!-- STEP 3：提携先への相談 -->
-      <div class="space-y-3">
+      <!-- STEP 3：提携先への相談（ACTIVE_PARTNERS に入っている種類だけ表示） -->
+      <div id="partnerSection" class="hidden space-y-3">
         <div class="flex items-center gap-2 px-1">
           <span class="step-badge text-white text-xs font-extrabold px-2.5 py-1 rounded">STEP 3</span>
           <span class="font-bold text-sm text-gray-800">技術者や資金の不足でこの案件を見送る前に（提携先へのご相談・無料）</span>
@@ -419,7 +419,7 @@
         <div id="leadDone" class="hidden bg-emerald-900 text-white p-4 rounded-xl shadow-lg font-bold text-sm text-center"></div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="bg-amber-50 border-2 border-amber-300 p-5 rounded-xl flex flex-col justify-between space-y-4 shadow-sm">
+          <div data-partner="hire" class="bg-amber-50 border-2 border-amber-300 p-5 rounded-xl flex flex-col justify-between space-y-4 shadow-sm">
             <div>
               <span class="bg-amber-200 text-amber-950 text-xs font-extrabold px-2.5 py-1 rounded">専任の技術者を増やしたい社長様へ</span>
               <h3 class="font-bold text-base mt-2 text-gray-900">1級土木施工管理技士の採用相談（人材紹介）</h3>
@@ -428,7 +428,7 @@
             <button onclick="openLead('hire')" class="lead-open w-full bg-amber-600 hover:bg-amber-700 text-white font-extrabold py-3 rounded-lg text-sm transition shadow cursor-pointer">👷 採用の相談をする（無料）</button>
           </div>
 
-          <div class="bg-blue-50 border-2 border-blue-300 p-5 rounded-xl flex flex-col justify-between space-y-4 shadow-sm">
+          <div data-partner="ma" class="bg-blue-50 border-2 border-blue-300 p-5 rounded-xl flex flex-col justify-between space-y-4 shadow-sm">
             <div>
               <span class="bg-blue-200 text-blue-950 text-xs font-extrabold px-2.5 py-1 rounded">技術者ごと事業を引き継ぎたい社長様へ</span>
               <h3 class="font-bold text-base mt-2 text-gray-900">事業承継・M&Aの相談</h3>
@@ -437,7 +437,7 @@
             <button onclick="openLead('ma')" class="lead-open w-full bg-blue-700 hover:bg-blue-800 text-white font-extrabold py-3 rounded-lg text-sm transition shadow cursor-pointer">🏢 M&Aの相談をする（無料）</button>
           </div>
 
-          <div class="bg-slate-50 border-2 border-slate-300 p-5 rounded-xl flex flex-col justify-between space-y-4 shadow-sm">
+          <div data-partner="fund" class="bg-slate-50 border-2 border-slate-300 p-5 rounded-xl flex flex-col justify-between space-y-4 shadow-sm">
             <div>
               <span class="bg-slate-200 text-slate-900 text-xs font-extrabold px-2.5 py-1 rounded">着工資金にお悩みの社長様へ</span>
               <h3 class="font-bold text-base mt-2 text-gray-900">資金調達の相談先のご紹介</h3>
@@ -528,6 +528,9 @@
       company: '',
       contact: ''
     };
+    // 契約済みの提携先の種類。契約したら 'hire'（採用）'ma'（M&A）'fund'（資金）を入れると、その相談枠が表示されます。例：['hire']
+    // 空のあいだは、相談枠・解除フォームの提携先チェック・プライバシー方針の提供先を表示しません。
+    const ACTIVE_PARTNERS = [];
     const LEADS = {
       hire: { title: '1級土木施工管理技士の採用相談', note: '例：令和9年度の入札に向けて1名採用したい' },
       ma:   { title: '事業承継・M&Aの相談', note: '例：技術者が在籍する会社の譲受を検討したい' },
@@ -591,8 +594,7 @@
       if (!S.data.operator) show('opWarn');
       document.querySelectorAll('.lead-open, #unlockBtn').forEach(b => { b.disabled = !S.data.operator; });
 
-      const p = S.data.partners || {};
-      $('partnerListShort').textContent = [p.hire, p.ma, p.fund].filter(Boolean).map(x => x.replace(/（.*?）/g, '')).join('・');
+      renderPartners();
       renderPrivacy();
       renderAlertForm();
       renderQualOptions();
@@ -926,13 +928,27 @@
           company, contact,
           privBusy: $('inPriv').value,
           privacyConsent: true,
-          partnerConsent: $('inPartner').checked,
+          partnerConsent: activePartners().length > 0 && $('inPartner').checked,
           projectTitle: S.cur ? S.cur.title : ''
         });
     }
 
     // ===== STEP 3 =====
+    function activePartners() {
+      const p = S.data.partners || {};
+      return ACTIVE_PARTNERS.filter(t => p[t]);
+    }
+    function renderPartners() {
+      const p = S.data.partners || {};
+      const act = activePartners();
+      document.querySelectorAll('[data-partner]').forEach(el => el.classList.toggle('hidden', act.indexOf(el.dataset.partner) < 0));
+      $('partnerSection').classList.toggle('hidden', !act.length);
+      $('inPartnerRow').classList.toggle('hidden', !act.length);
+      $('partnerListShort').textContent = act.map(t => p[t].replace(/（.*?）/g, '')).join('・');
+      $('step3Pill').textContent = act.length ? '③ 技術者・資金を相談' : '③ 新着を毎朝メールで受け取る';
+    }
     function openLead(type) {
+      if (activePartners().indexOf(type) < 0) return;
       if (!S.data.operator) return;
       S.leadType = type;
       $('leadTitle').textContent = LEADS[type].title;
@@ -1297,16 +1313,17 @@
     function renderPrivacy() {
       const op = S.data.operator;
       const p = S.data.partners || {};
+      const act = activePartners();
       const opHtml = op
         ? `${esc(op.name)}${op.representative ? '（' + esc(op.representative) + '）' : ''}${op.address ? '／所在地：' + esc(op.address) : ''}`
         : '<span class="text-rose-600 font-bold">未設定（受付停止中）</span>';
       $('privacyBody').innerHTML = `
         <p><strong>1. 事業者</strong>：${opHtml}</p>
         <p><strong>2. 取得する情報</strong>：貴社名、ご担当者名、電話番号またはメールアドレス、稼働中の民間工事の専任数（任意）、ご相談内容、閲覧中の案件名。メール通知を登録した場合は、メールアドレスと通知の条件。「感想を送る」を使った場合は、その回答（お名前・会社名は任意）。なお「自社の技術者チェック」に入力した内容は、お使いのブラウザにだけ保存され、運営者は取得しません。</p>
-        <p><strong>3. 利用目的</strong>：(1) ライバル企業データの表示などの本サービスの提供　(2) 運営者からのご連絡・ご案内　(3) ご本人が同意した場合に限り、下記の提携先への提供　(4) 新着公告のお知らせメールの配信（メール内のリンクからいつでも停止できます）　(5) いただいた感想にもとづくサービスの改善</p>
-        <p><strong>4. 第三者への提供</strong>：ご本人の同意がある場合に限り、ご相談の種類に応じて次の提携先に、上記2の情報を提供します。<br>
-          ・${esc(p.hire || '')}<br>・${esc(p.ma || '')}<br>・${esc(p.fund || '')}<br>
-          同意のない情報は提携先に提供しません。</p>
+        <p><strong>3. 利用目的</strong>：(1) ライバル企業データの表示などの本サービスの提供　(2) 運営者からのご連絡・ご案内　(3) ${act.length ? 'ご本人が同意した場合に限り、下記の提携先への提供' : '（現在、提携先への提供は行っていません）'}　(4) 新着公告のお知らせメールの配信（メール内のリンクからいつでも停止できます）　(5) いただいた感想にもとづくサービスの改善</p>
+        <p><strong>4. 第三者への提供</strong>：${act.length
+          ? `ご本人の同意がある場合に限り、ご相談の種類に応じて次の提携先に、上記2の情報を提供します。<br>${act.map(t => '・' + esc(p[t])).join('<br>')}<br>同意のない情報は提携先に提供しません。`
+          : '現在、提携先はなく、第三者には提供していません。将来提携先ができた場合も、この方針を改めたうえで、ご本人の同意がある場合に限り提供します。'}</p>
         <p><strong>5. 開示・訂正・削除・利用停止・第三者提供の停止のご請求</strong>：${op ? esc(op.contact) : '未設定'} までご連絡ください。</p>
         <p class="text-gray-400">制定：${esc(S.data.consentVersion || '')}</p>`;
     }
