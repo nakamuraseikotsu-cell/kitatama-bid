@@ -191,6 +191,14 @@
         </div>
       </div>
 
+      <!-- 公式の入札ページ（この一覧にない案件の確認用） -->
+      <details id="linkBox" class="bg-white border-2 border-slate-200 rounded-xl p-4 text-sm">
+        <summary class="font-bold text-gray-900 cursor-pointer">📎 東京都・各市の工事は、公式の入札ページで確認（リンク集）</summary>
+        <p class="text-xs text-gray-600 mt-2 leading-relaxed">上の一覧は、国の「官公需情報ポータルサイト」に載っている公告です。東京都や各市が自分の電子入札システムで出している工事は、下の公式ページで確認してください（この一覧への取り込みは準備中です）。</p>
+        <div id="linkList" class="mt-3 space-y-3"></div>
+        <p class="text-[11px] text-gray-500 mt-3">リンク先は各発注機関の公式ページです（東京都のページは東京都公式ホームページへのリンクです）。ページの場所が変わっている場合はお知らせください。</p>
+      </details>
+
       <!-- 案件詳細＆最低制限価格の範囲 -->
       <div id="detailCard" class="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-200 space-y-4">
         <div class="flex flex-col lg:flex-row justify-between items-start gap-4">
@@ -594,6 +602,7 @@
       renderStaff();
       renderFeedback();
       checkInvite();
+      renderLinks();
     }
 
     // ===== STEP 1 =====
@@ -1142,6 +1151,52 @@
         .withFailureHandler(e => { $('subMsg').textContent = 'エラー：' + errMsg(e); btn.disabled = false; });
       if (SUB.action === 'confirm') runner.confirmSubscription(SUB.token);
       else runner.stopSubscription(SUB.token);
+    }
+
+    // ===== 公式の入札ページ（リンク集） =====
+    const OFFICIAL_LINKS = [
+      {
+        group: '東京都の工事（都の入札情報）',
+        items: [
+          { name: '東京都電子調達システム（入札情報サービス）', url: 'https://www.e-procurement.metro.tokyo.lg.jp/index.jsp' },
+          { name: '東京都財務局 契約情報', url: 'https://www.zaimu.metro.tokyo.lg.jp/keiyaku/' }
+        ]
+      },
+      {
+        group: '市の工事（多くの市が使う共通の電子調達サービス）',
+        items: [
+          { name: '東京電子自治体共同運営 電子調達サービス', url: 'https://www.e-tokyo.lg.jp/choutatu_ppij/cmn/tmg/cmn/jsp/indexQ.jsp' }
+        ]
+      },
+      {
+        group: '北多摩17市の入札・契約ページ',
+        items: [
+          { name: '武蔵野市', url: 'https://www.city.musashino.lg.jp/shiseijoho/keiyaku_nyusatsu/index.html' },
+          { name: '三鷹市', url: 'https://www.city.mitaka.lg.jp/c_categories/index08001.html' },
+          { name: '府中市', url: 'https://www.city.fuchu.tokyo.jp/jigyosha/keyaku/index.html' },
+          { name: '調布市', url: 'https://www.city.chofu.lg.jp/sangyou/nyuusatsu/index.html' },
+          { name: '小金井市', url: 'https://www.city.koganei.lg.jp/shisei/jigyoshamuke/nyusatsukeiyakujoho/index.html' },
+          { name: '小平市（電子調達サービス）', url: 'https://www.e-tokyo.lg.jp/choutatu_ppij/cmn/tmg/cmn/jsp/indexQ.jsp' },
+          { name: '東村山市', url: 'https://www.city.higashimurayama.tokyo.jp/shisei/gyozaisei/keiyaku/index.html' },
+          { name: '国分寺市', url: 'https://www.city.kokubunji.tokyo.jp/business/jigyousha/nyusatsu/index.html' },
+          { name: '国立市', url: 'https://www.city.kunitachi.tokyo.jp/jigyosha/8454.html' },
+          { name: '西東京市', url: 'https://www.city.nishitokyo.lg.jp/siseizyoho/keiyaku/index.html' },
+          { name: '狛江市', url: 'https://www.city.komae.tokyo.jp/index.cfm/46,0,372,html' },
+          { name: '東大和市', url: 'https://www.city.higashiyamato.lg.jp/business/nyusatsu/index.html' },
+          { name: '清瀬市', url: 'https://www.city.kiyose.lg.jp/sigotosangyou/keiyakunyuusatu/index.html' },
+          { name: '東久留米市', url: 'https://www.city.higashikurume.lg.jp/shisei/jigyosha/nyusatsu/index.html' },
+          { name: '武蔵村山市', url: 'https://www.city.musashimurayama.lg.jp/shisei/keiyaku/index.html' },
+          { name: '立川市', url: 'https://www.city.tachikawa.lg.jp/sangyo/nyusatsu/index.html' },
+          { name: '昭島市', url: 'https://www.city.akishima.lg.jp/li/070/010/index.html' }
+        ]
+      }
+    ];
+    function renderLinks() {
+      $('linkList').innerHTML = OFFICIAL_LINKS.map(g => `
+        <div>
+          <div class="text-xs font-bold text-gray-500 mb-1.5">${esc(g.group)}</div>
+          <div class="flex flex-wrap gap-1.5">${g.items.map(i => `<a href="${esc(i.url)}" target="_blank" rel="noopener noreferrer" class="text-xs font-bold px-3 py-2 rounded-full border border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-800">${esc(i.name)} ↗</a>`).join('')}</div>
+        </div>`).join('');
     }
 
     // ===== 感想（タップで回答） =====
