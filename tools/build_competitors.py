@@ -119,9 +119,11 @@ def parse_floor(text):
     m = re.search(r'最\s*低\s*制\s*限\s*価\s*格', text)
     if not m:
         return None, False
-    seg = text[m.end():m.end() + 80]
-    if re.match(r'[\s:：|]*(設定\s*なし|なし|未\s*設定|-|―|算定\s*せず|算定\s*なし)', seg):
+    seg = text[m.end():].split('\n', 1)[0][:80]
+    if re.match(r'[\s:：|]*(設\s*定\s*な\s*し|な\s*し|未\s*設\s*定|-|―|算\s*定\s*せ\s*ず|算\s*定\s*な\s*し|算\s*定\s*対\s*象\s*外)', seg):
         return None, True
+    if not re.match(r'[\s:：|(（]*(入\s*札\s*書\s*比\s*較\s*価\s*格\s*)?[\d,]', seg):
+        return None, bool(seg.strip())
     nums = [(a.start(), amount(a.group(1))) for a in AMOUNT_RE.finditer(seg) if amount(a.group(1)) >= 10000]
     if not nums:
         return None, False
@@ -130,96 +132,113 @@ def parse_floor(text):
     return nums[0][1], True
 
 
+STATUS_WORDS = [('win', r'落\s*札|決\s*定'), ('decline', r'辞\s*退|欠\s*席|不\s*参\s*加|取\s*下\s*げ?|取\s*消'),
+                ('invalid', r'無\s*効|失\s*格'), ('bid', r'参\s*加')]
+STATUS_TAIL = re.compile(r'\s(' + '|'.join(p for _, p in STATUS_WORDS) + r')(?=\s|$|\()')
+AMOUNT_LINE = re.compile(r'^\s*(\d{1,3}(?:,\d{3})+|\d{5,})\s*円?\s*$')
+LABEL_LINE = re.compile(r'^(決\s*定|落\s*札)\s*業\s*者|^業\s*者\s*名|^商\s*号|^所\s*在\s*地|^代\s*表')
+
+
+def status_of(word):
+    for st, pat in STATUS_WORDS:
+        if re.fullmatch(pat, word):
+            return st
+    return ''
+
+
 def parse_bidders(lines):
+    """1行に1社（「番号 社名 状況」＋金額は同じ行か次の行）の表を読む。"""
+    lines = [nfkc(l) for l in lines]
     out = {}
-    for line in lines:
-        line = nfkc(line)
-        hits = list(CORP_RE.finditer(line))
-        if not hits:
+    for i, line in enumerate(lines):
+        if not CORP_RE.search(line) or LABEL_LINE.search(line.strip()):
             continue
-        # 1行に複数社あるとき（2段組の表など）も、社名ごとに区切って読む
-        spans = []
-        tokens = list(re.finditer(r'\S+', line))
-        for h in hits:
-            tok = next((t for t in tokens if t.start() <= h.start() < t.end()), None)
-            if tok is None:
-                continue
-            s, e = tok.start(), tok.end()
-            word = tok.group(0)
-            # 「株式会社 ○○」のように法人格だけが離れている
-            if CORP_RE.fullmatch(re.sub(r'[|:：]', '', word)):
-                nxt = next((t for t in tokens if t.start() >= e), None)
-                prv = next((t for t in reversed(tokens) if t.end() <= s), None)
-                def wordlike(t):
-                    w = t.group(0) if t is not None else ''
-                    return bool(w) and not re.fullmatch(r'[\d,.|円]+|No\.?|№', w) and not any(re.fullmatch(p, w) for _, p in STATUS) and not CORP_RE.search(w)
-                if wordlike(prv) and (not spans or prv.start() >= spans[-1][1]):
-                    s = prv.start()
-                elif wordlike(nxt):
-                    e = nxt.end()
-            if spans and s < spans[-1][1]:
-                continue
-            spans.append((s, e))
-        for i, (s, e) in enumerate(spans):
-            name = clean_name(re.sub(r'^[\d.|]+', '', line[s:e]))
-            name = AMOUNT_RE.split(name)[0] if AMOUNT_RE.search(name) else name
-            key = company_key(name)
-            if len(key) < 2 or re.search(r'市長|市役所|東京都|代表|住所|所在地|件名|業者名', key):
-                continue
-            rest = line[e:spans[i + 1][0] if i + 1 < len(spans) else len(line)]
-            amt = None
-            for a in AMOUNT_RE.finditer(rest):
-                v = amount(a.group(1))
-                if v >= 10000:
-                    amt = v
-                    break
-            status = ''
-            for st, pat in STATUS:
-                if re.search(pat, rest):
-                    status = st
-                    break
-            if amt is None and status not in ('decline', 'invalid'):
-                continue  # 住所の行など
-            prev = out.get(key)
-            if prev is None or (prev['amount'] is None and amt is not None):
-                out[key] = {'name': name, 'amount': amt, 'status': status or ('bid' if amt else '')}
-            elif status == 'win':
-                prev['status'] = 'win'
+        body = re.sub(r'^\s*\d{1,3}\s+', '', line.strip())
+        st = ''
+        m = STATUS_TAIL.search(' ' + body)
+        if m:
+            st = status_of(m.group(1))
+            name_part, rest = (' ' + body)[:m.start()], (' ' + body)[m.end():]
+        else:
+            name_part, rest = body, ''
+        am = AMOUNT_RE.search(name_part)
+        amt = None
+        if am and amount(am.group(1)) >= 10000:
+            amt = amount(am.group(1))
+            name_part = name_part[:am.start()]
+        if amt is None:
+            ra = AMOUNT_RE.search(rest)
+            if ra and amount(ra.group(1)) >= 10000:
+                amt = amount(ra.group(1))
+        if amt is None and i + 1 < len(lines):
+            nm = AMOUNT_LINE.match(lines[i + 1])
+            if nm and amount(nm.group(1)) >= 10000:
+                amt = amount(nm.group(1))
+        name = clean_name(re.sub(r'[\s　]+', '', name_part).rstrip('円'))
+        if not CORP_RE.search(name):
+            continue
+        key = company_key(name)
+        if len(key) < 2 or re.search(r'市長|市役所|東京都|代表|住所|所在地|件名|業者', key):
+            continue
+        if amt is None and st not in ('decline', 'invalid', 'win'):
+            continue  # 社名だけの行（落札者の見出しなど）
+        if amt is None and st == 'win':
+            continue
+        if not st:
+            st = 'bid'
+        prev = out.get(key)
+        if prev is None or (prev['amount'] is None and amt is not None):
+            out[key] = {'name': name, 'amount': amt, 'status': st}
+        elif st == 'win':
+            prev['status'] = 'win'
     return list(out.values())
 
 
 def split_cases(text):
+    heads = [m.start() for m in re.finditer(r'入\s*札\s*結\s*果\s*及\s*び\s*契\s*約\s*決\s*定', text)]
+    if len(heads) >= 1:
+        # 見出しの少し前（年度・番号の行）から区切る
+        starts = []
+        for h in heads:
+            back = text.rfind('\n', 0, h)
+            for _ in range(2):
+                b2 = text.rfind('\n', 0, back) if back > 0 else -1
+                if b2 >= 0 and re.search(r'令和|番号', text[b2:back]):
+                    back = b2
+            starts.append(max(back, 0))
+        starts[0] = 0
+        return [text[st:(starts[i + 1] if i + 1 < len(starts) else len(text))] for i, st in enumerate(starts)]
     marks = [m.start() for m in re.finditer(r'件\s*名', text)]
     if len(marks) <= 1:
         return [text]
-    blocks = []
-    starts = marks
-    for i, st in enumerate(starts):
-        en = starts[i + 1] if i + 1 < len(starts) else len(text)
-        blocks.append(text[st:en])
-    # 先頭の見出し部分（最初の件名より前）に日付などがあれば最初の案件につける
-    head = text[:starts[0]]
+    blocks = [text[st:(marks[i + 1] if i + 1 < len(marks) else len(text))] for i, st in enumerate(marks)]
+    head = text[:marks[0]]
     if head.strip():
         blocks[0] = head + '\n' + blocks[0]
     return blocks
 
 
 def parse_title(block):
-    m = re.search(r'件\s*名[\s:：|]*([^\n]*)', block)
-    if not m:
-        return ''
-    t = m.group(1).strip(' |:：')
-    if not t:
-        nxt = block[m.end():].lstrip('\n').split('\n', 1)[0]
-        t = nxt.strip(' |:：')
-    return re.sub(r'\s+', '', nfkc(t))[:120]
+    lines = block.split('\n')
+    for i, ln in enumerate(lines):
+        m = re.search(r'件\s*名[\s:：|]*(.*)$', ln)
+        if not m:
+            continue
+        t = m.group(1).strip(' |:：')
+        if not t:
+            # 立川市：件名の文字列が「件 名」の行の前にある
+            prev = next((lines[j] for j in range(i - 1, max(i - 4, -1), -1) if re.search(r'工事|修繕|委託|業務', lines[j])), '')
+            nxt = lines[i + 1] if i + 1 < len(lines) else ''
+            t = prev or nxt
+        return re.sub(r'\s+', '', nfkc(t)).strip('|:：')[:120]
+    return ''
 
 
 def parse_case(block, fallback_date=None):
     text = nfkc(block)
     title = parse_title(text)
     dm = None
-    for lab in (r'入\s*札\s*(?:月\s*)?日', r'開\s*札\s*日', r'執\s*行\s*日'):
+    for lab in (r'入\s*札\s*(?:\([^)]{0,6}\)\s*)?(?:年\s*)?(?:月\s*)?日', r'開\s*札\s*日', r'執\s*行\s*日'):
         m = re.search(lab + r'[^\n]{0,20}?' + DATE_RE.pattern, text)
         if m:
             dm = DATE_RE.search(m.group(0))
@@ -233,8 +252,8 @@ def parse_case(block, fallback_date=None):
     bids = [b['amount'] for b in bidders if b['amount']]
     # 予定価格が税込で入札額が税抜のとき（落札額が予定価格の約1/1.1以下に偏る）は税抜に直す
     if price and basis == 'incl' and bids and max(bids) <= price / 1.1 * 1.001:
-        price = int(price / 1.1)
-        floor = int(floor / 1.1) if floor else floor
+        price = price * 10 // 11 if price * 10 % 11 == 0 else round(price * 10 / 11)
+        floor = round(floor * 10 / 11) if floor else floor
     return {'title': title, 'date': date.isoformat() if date else '', 'price': price, 'floor': floor,
             'floorListed': floor_listed, 'bidders': bidders,
             'variable': bool(re.search(r'変\s*動\s*型', text))}
