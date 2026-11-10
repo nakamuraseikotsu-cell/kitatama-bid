@@ -130,7 +130,7 @@
         <span class="bg-slate-900 text-white px-2 py-1 rounded">💡 使い方</span>
         <span class="bg-emerald-50 text-emerald-900 border border-emerald-200 px-2 py-1 rounded">① 工事を選ぶ</span>
         <span class="text-slate-400">▶</span>
-        <span class="bg-emerald-50 text-emerald-900 border border-emerald-200 px-2 py-1 rounded">② 最低制限価格の範囲とライバルを確認</span>
+        <span class="bg-emerald-50 text-emerald-900 border border-emerald-200 px-2 py-1 rounded">② 失格ライン（最低制限価格）を円単位で計算</span>
         <span class="text-slate-400">▶</span>
         <span id="step3Pill" class="bg-emerald-50 text-emerald-900 border border-emerald-200 px-2 py-1 rounded">③ 新着を毎朝メールで受け取る</span>
       </div>
@@ -203,6 +203,18 @@
           <a id="tokyoSpBtn" href="https://www.e-procurement.metro.tokyo.lg.jp/sp/index.html" target="_blank" rel="noopener" class="flex-1 text-center bg-indigo-700 hover:bg-indigo-800 text-white font-extrabold py-3 rounded-lg text-sm shadow">🏛 東京都の公式サイトで見る（スマホ版）</a>
           <a id="tokyoPcBtn" href="https://www.e-procurement.metro.tokyo.lg.jp/indexPbi.jsp" target="_blank" rel="noopener" class="text-center bg-white border-2 border-indigo-300 text-indigo-900 font-bold py-3 px-4 rounded-lg text-sm">パソコン版</a>
         </div>
+        <button type="button" onclick="openTokyoCalc()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-extrabold py-2.5 rounded-lg text-sm shadow">🧮 東京都の工事の失格ラインを計算する</button>
+        <details class="text-xs text-gray-700">
+          <summary class="cursor-pointer font-bold">📑 過去の工事の金入り設計書（単価入り）を見る</summary>
+          <p class="mt-1 leading-relaxed">東京都は、入札で契約した工事の金入り設計書（総括表・内訳書など）を「東京都公文書情報公開システム」で無料公開しています（契約からおおむね2年間）。似た工事の4つの費目の割合や、単価の相場を確かめるのに使えます。</p>
+          <ol class="list-decimal ml-5 mt-1 space-y-0.5 leading-relaxed">
+            <li>上の公式サイトの「入札(見積)経過情報」で、似た工事の契約番号を確認</li>
+            <li>公文書情報公開システムで「公開公文書の取得」→ ログイン（初回はユーザー登録）</li>
+            <li>「工事設計書の検索」で契約番号や件名を入れて検索 → ダウンロード</li>
+          </ol>
+          <a id="kobunsyoLink" href="https://kobunsyo-johokokai.metro.tokyo.lg.jp/disclosure/index.html" target="_blank" rel="noopener" class="inline-block mt-1.5 font-bold text-indigo-800 underline">東京都公文書情報公開システムを開く ↗</a>
+          <p class="text-[11px] text-gray-500 mt-1 leading-relaxed">2026年8月13日にアドレスが変わりました（末尾が metro.tokyo.lg.jp）。各局のページに古いアドレスが残っていることがあります。載っていない工事は、発注した局に掲載を依頼できます。ダウンロードした設計書は自社の積算に使い、ほかのサイトなどへの転載はしないでください（同システムの利用規約）。</p>
+        </details>
         <details class="text-xs text-gray-700">
           <summary class="cursor-pointer font-bold">探し方（初回だけ30秒）</summary>
           <ol class="list-decimal ml-5 mt-1 space-y-0.5 leading-relaxed">
@@ -241,7 +253,7 @@
 
           <div class="bg-slate-900 text-white p-4 rounded-xl text-right w-full lg:w-auto lg:min-w-[310px] shadow-md space-y-2 shrink-0">
             <div>
-              <div class="text-xs text-gray-300">🎯 最低制限価格の範囲（中央公契連モデルの場合）</div>
+              <div id="rangeHead" class="text-xs text-gray-300">🎯 最低制限価格の範囲（中央公契連モデルの場合）</div>
               <div id="rangeVal" class="text-xl md:text-2xl font-extrabold text-emerald-400 mt-0.5"></div>
               <div id="rangeSub" class="text-[11px] text-gray-400 mt-0.5">予定価格の75%〜92%</div>
               <div id="basePriceVal" class="text-xs text-gray-300 mt-1"></div>
@@ -255,6 +267,56 @@
           </div>
         </div>
 
+        <!-- 失格ライン（最低制限価格）計算：発注者ごとの算定式・端数処理で円単位に出す -->
+        <details id="modelBox" open class="bg-amber-50 border-2 border-amber-300 rounded-xl p-3 md:p-4">
+          <summary class="text-sm md:text-base font-extrabold text-amber-900 cursor-pointer">🧮 失格ライン（最低制限価格）を円単位で計算する</summary>
+          <p class="text-[11px] md:text-xs text-gray-700 mt-2 leading-relaxed">設計書の「工事費総括表（総括書）」にある4つの費目を入れると、発注者の計算式どおりに失格ラインを出します。落札は失格ラインの数万円上で決まることが多いので、<strong>円単位</strong>で入れてください（カンマ付きの貼り付けもできます）。</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3 text-xs">
+            <label class="space-y-1 block"><span class="font-bold text-gray-800">発注者の計算ルール</span>
+              <select id="mRule" onchange="onRuleChange()" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5 focus:outline-none focus:border-amber-500 bg-white"></select></label>
+            <label class="space-y-1 block"><span class="font-bold text-gray-800">工事の種類</span>
+              <select id="mKind" onchange="renderModel()" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5 focus:outline-none focus:border-amber-500 bg-white">
+                <option value="general">土木・設備など（一般）</option>
+                <option value="building">建築工事（建築設備工事を含む）</option>
+                <option value="elevator">昇降機設備工事</option>
+                <option value="demolish">解体工事</option>
+              </select></label>
+          </div>
+          <div id="mRuleNote" class="text-[11px] text-gray-700 mt-1.5 leading-relaxed"></div>
+          <div id="mCustom" class="hidden mt-2 bg-white border border-amber-200 rounded-lg p-2 text-xs">
+            <div class="font-bold text-gray-800 mb-1">公告・発注者の算定基準の数値を入れてください（%）</div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <label class="space-y-0.5 block"><span class="text-gray-600">直接工事費</span><input id="cDir" type="text" inputmode="decimal" value="97" oninput="renderAll()" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5 text-right focus:outline-none focus:border-amber-500 bg-white"></label>
+              <label class="space-y-0.5 block"><span class="text-gray-600">共通仮設費</span><input id="cCom" type="text" inputmode="decimal" value="90" oninput="renderAll()" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5 text-right focus:outline-none focus:border-amber-500 bg-white"></label>
+              <label class="space-y-0.5 block"><span class="text-gray-600">現場管理費</span><input id="cSite" type="text" inputmode="decimal" value="90" oninput="renderAll()" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5 text-right focus:outline-none focus:border-amber-500 bg-white"></label>
+              <label class="space-y-0.5 block"><span class="text-gray-600">一般管理費等</span><input id="cGen" type="text" inputmode="decimal" value="68" oninput="renderAll()" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5 text-right focus:outline-none focus:border-amber-500 bg-white"></label>
+              <label class="space-y-0.5 block"><span class="text-gray-600">下限（予定価格の）</span><input id="cLo" type="text" inputmode="decimal" value="75" oninput="renderAll()" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5 text-right focus:outline-none focus:border-amber-500 bg-white"></label>
+              <label class="space-y-0.5 block"><span class="text-gray-600">上限（予定価格の）</span><input id="cHi" type="text" inputmode="decimal" value="92" oninput="renderAll()" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5 text-right focus:outline-none focus:border-amber-500 bg-white"></label>
+              <label class="space-y-0.5 block col-span-2"><span class="text-gray-600">合計の端数処理（税抜）</span>
+                <select id="cRound" onchange="renderAll()" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5 focus:outline-none focus:border-amber-500 bg-white"><option value="1">1円未満切捨て</option><option value="1000">1,000円未満切捨て</option><option value="10000">1万円未満切捨て</option></select></label>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3 text-xs">
+            <label class="space-y-1 block"><span class="font-bold text-gray-800">① 直接工事費（円・税抜）</span>
+              <input id="mDirect" type="text" inputmode="numeric" placeholder="例：123,456,789" oninput="renderModel()" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5 text-right focus:outline-none focus:border-amber-500 bg-white"></label>
+            <label class="space-y-1 block"><span class="font-bold text-gray-800">② 共通仮設費（円・税抜）</span>
+              <input id="mCommon" type="text" inputmode="numeric" placeholder="例：8,765,432" oninput="renderModel()" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5 text-right focus:outline-none focus:border-amber-500 bg-white"></label>
+            <label class="space-y-1 block"><span class="font-bold text-gray-800">③ 現場管理費（円・税抜）</span>
+              <input id="mSite" type="text" inputmode="numeric" placeholder="例：15,432,100" oninput="renderModel()" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5 text-right focus:outline-none focus:border-amber-500 bg-white"></label>
+            <label class="space-y-1 block"><span class="font-bold text-gray-800">④ 一般管理費等（円・税抜）</span>
+              <input id="mGeneral" type="text" inputmode="numeric" placeholder="例：12,345,600" oninput="renderModel()" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5 text-right focus:outline-none focus:border-amber-500 bg-white"></label>
+          </div>
+          <label id="mAdjRow" class="hidden space-y-1 block mt-2 text-xs"><span class="font-bold text-gray-800">現場管理費相当額（設計書で分かる場合だけ・円）</span>
+            <input id="mAdj" type="text" inputmode="numeric" placeholder="空欄なら直接工事費の1/10（昇降機は2/10）で計算" oninput="renderModel()" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5 text-right focus:outline-none focus:border-amber-500 bg-white"></label>
+          <div id="modelResult" class="mt-3"></div>
+          <div class="mt-3 pt-3 border-t border-amber-200 text-xs">
+            <label class="space-y-1 block"><span class="font-bold text-gray-800">💰 利益ライン：自社の原価見込み（実行予算・円・税抜）</span>
+              <input id="mCost" type="text" inputmode="numeric" placeholder="入れると、失格ラインで取ったときの利益が出ます" oninput="renderModel()" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5 text-right focus:outline-none focus:border-amber-500 bg-white"></label>
+            <div id="profitResult" class="mt-2"></div>
+          </div>
+          <p class="text-[11px] text-gray-500 mt-3 leading-relaxed">※ 発注者の積算（予定価格の内訳）と同じ金額を入れたときの計算です。自社の積算が発注者とずれると失格ラインもずれます。発生材の売却費など、公告の算定基準に別の扱いがある場合はそちらに従ってください。最終的な入札額はご自身の判断でお決めください。</p>
+        </details>
+
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
           <div class="md:col-span-2 bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 flex flex-col justify-center">
             <div class="text-xs font-extrabold text-emerald-800 mb-0.5">📊 ライバルの状況（経審・入札結果の公開データから）</div>
@@ -263,25 +325,10 @@
           <div class="bg-amber-50 border border-amber-200 rounded-xl p-3.5 flex flex-col justify-center">
             <div class="text-xs font-extrabold text-amber-900 mb-0.5">🛡 失格にならない目安ライン</div>
             <div id="safeLineVal" class="text-lg font-extrabold text-amber-900"></div>
-            <div class="text-[11px] text-amber-800 leading-snug">予定価格の92%（中央公契連モデルの上限）。発注機関が独自の式や係数を使う場合があるので、公告の算定基準を確認してください。</div>
+            <div id="safeLineNote" class="text-[11px] text-amber-800 leading-snug">予定価格の92%（中央公契連モデルの上限）。これ以上の入札なら、内訳に関係なく失格になりません。</div>
           </div>
         </div>
 
-        <details id="modelBox" class="bg-slate-50 border border-slate-200 rounded-xl p-3">
-          <summary class="text-xs font-bold text-slate-800 cursor-pointer">🧮 内訳がわかる場合：中央公契連モデルで最低制限価格を計算する</summary>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-3 text-xs">
-            <label class="space-y-1"><span class="font-bold text-gray-700">直接工事費（万円）</span>
-              <input id="mDirect" type="number" min="0" step="1" oninput="renderModel()" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5 text-right focus:outline-none focus:border-emerald-600"></label>
-            <label class="space-y-1"><span class="font-bold text-gray-700">共通仮設費（万円）</span>
-              <input id="mCommon" type="number" min="0" step="1" oninput="renderModel()" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5 text-right focus:outline-none focus:border-emerald-600"></label>
-            <label class="space-y-1"><span class="font-bold text-gray-700">現場管理費（万円）</span>
-              <input id="mSite" type="number" min="0" step="1" oninput="renderModel()" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5 text-right focus:outline-none focus:border-emerald-600"></label>
-            <label class="space-y-1"><span class="font-bold text-gray-700">一般管理費等（万円）</span>
-              <input id="mGeneral" type="number" min="0" step="1" oninput="renderModel()" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5 text-right focus:outline-none focus:border-emerald-600"></label>
-          </div>
-          <div id="modelResult" class="mt-3 text-sm font-bold text-slate-900"></div>
-          <div class="text-[11px] text-gray-500 mt-1 leading-relaxed">計算式：直接工事費×97%＋共通仮設費×90%＋現場管理費×90%＋一般管理費等×68%。結果が予定価格の75%未満なら75%、92%を超えるなら92%にします（すべて税抜）。予定価格が未入力のときは、4つの内訳の合計を予定価格として扱います。</div>
-        </details>
       </div>
 
       <!-- 自社の技術者チェック（この端末のブラウザだけに保存） -->
@@ -542,6 +589,8 @@
       list: [],
       cur: null,
       priceOverride: null,   // 利用者が入力した予定価格（円）
+      rule: 'kokeiren',      // 失格ラインの計算ルール
+      ruleManual: false,     // 利用者が自分で選んだか（選んでいなければ案件の発注者に合わせる）
       sort: 'DEFAULT',
       city: 'ALL',
       kind: 'ALL',
@@ -723,7 +772,8 @@
       S.cur = S.list[i] || S.list[0];
       S.priceOverride = null;
       $('priceInput').value = S.cur.price ? Math.round(S.cur.price / 10000) : '';
-      ['mDirect', 'mCommon', 'mSite', 'mGeneral'].forEach(id => { $(id).value = ''; });
+      ['mDirect', 'mCommon', 'mSite', 'mGeneral', 'mAdj', 'mCost'].forEach(id => { $(id).value = ''; });
+      S.ruleManual = false;
       $('ddDate').textContent = S.cur.openDate ? `【開札 ${jpDate(S.cur.openDate)}】` : `【公告 ${jpDate(S.cur.cftDate)}】`;
       $('ddOrg').textContent = S.cur.org + (S.cur.city ? `（${S.cur.city}）` : '');
       $('ddTitle').textContent = S.cur.title;
@@ -789,10 +839,15 @@
         show('priceEvidence');
       } else { hide('priceEvidence'); }
 
+      if (!S.ruleManual) S.rule = ruleForProject(p);
+      const rule = currentRule();
+      const loP = pctText(rule.lo), hiP = pctText(rule.hi);
+      $('rangeHead').textContent = `🎯 最低制限価格の範囲（${rule.short}の場合）`;
+      $('safeLineNote').textContent = `予定価格の${hiP}%（${rule.short}の上限）。これ以上の入札なら、内訳に関係なく失格になりません。`;
       if (price !== null) {
-        $('rangeVal').textContent = `${yen(price * 0.75)} 〜 ${yen(price * 0.92)}`;
-        $('rangeSub').textContent = '予定価格の75%〜92%（この範囲で算定式により決まります）';
-        $('safeLineVal').textContent = `${yen(price * 0.92)} 以上`;
+        $('rangeVal').textContent = `${yen(price * rule.lo / 1000)} 〜 ${yen(price * rule.hi / 1000)}`;
+        $('rangeSub').textContent = `予定価格の${loP}%〜${hiP}%（この範囲で算定式により決まります）`;
+        $('safeLineVal').textContent = `${yen(price * rule.hi / 1000)} 以上`;
       } else {
         $('rangeVal').textContent = '予定価格を入力してください';
         $('rangeSub').textContent = '予定価格がわかると、範囲を計算できます';
@@ -811,21 +866,159 @@
       }
     }
 
-    // ===== 中央公契連モデル計算 =====
+    // ===== 失格ライン（最低制限価格）計算 =====
+    // 係数・範囲は千分率（970 = 97.0%）。端数処理の誤差を避けるため整数で計算する。
+    const FLOOR_RULES = {
+      kokeiren: {
+        name: '中央公契連モデル（市の基準が分からないときの目安）', short: '中央公契連モデル',
+        coef: [970, 900, 900, 680], lo: 750, hi: 920, round: 1, building: false, demolish: 0,
+        note: '国の機関や、算定基準を公表していない市の目安です。市ごとに係数や端数処理が違うので、必ず公告や市の算定基準で確かめてください。',
+        src: ''
+      },
+      tokyo: {
+        name: '東京都（財務局・各局の工事）', short: '東京都',
+        coef: [970, 900, 900, 680], lo: 750, hi: 930, round: 1, building: true, demolish: 800,
+        note: '令和5年1月16日以降の公告案件。各費目に係数を掛けて1円未満切捨て → 合計に消費税を掛けて1円未満切捨て。範囲は予定価格（税抜）の75%〜93%。建築工事は直接工事費の1/10（昇降機は2/10）を現場管理費に振り替え、解体工事は直接工事費の係数が80%になります。',
+        src: 'https://www.waterworks.metro.tokyo.lg.jp/documents/d/waterworks/106022017-tyousa_seido_20260701_02'
+      },
+      nishitokyo: {
+        name: '西東京市', short: '西東京市',
+        coef: [970, 900, 900, 550], lo: 700, hi: 900, round: 1000, building: true, demolish: 0,
+        note: '予定価格1,000万円以上の工事が対象。一般管理費等の係数が55%で、合計の1,000円未満を切り捨ててから消費税を掛けます。範囲は予定価格の70%〜90%。',
+        src: 'https://www.city.nishitokyo.lg.jp/siseizyoho/keiyaku/kitei.files/20_saitei.pdf'
+      },
+      custom: {
+        name: '自分で設定（公告の算定基準を入れる）', short: '自分で設定した基準',
+        building: true, demolish: 0, note: '公告や発注者の算定基準に書かれた係数・範囲・端数処理を入れてください。', src: ''
+      }
+    };
+
+    // 「123,456,789円」「１２３，４５６」なども数字として読む
+    function parseYen(v) {
+      const t = String(v || '').replace(/[０-９．]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)).replace(/[^0-9.]/g, '');
+      const n = Math.floor(Number(t));
+      return n > 0 ? n : 0;
+    }
+    function parsePct(v) {
+      const t = String(v || '').replace(/[０-９．]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)).replace(/[^0-9.]/g, '');
+      const n = Number(t);
+      return n > 0 ? Math.round(n * 10) : 0;   // % → 千分率
+    }
+    const pctText = permille => String(permille / 10);
+
+    function ruleForProject(p) {
+      return p && /西東京市/.test(p.org || '') ? 'nishitokyo' : 'kokeiren';
+    }
+    function currentRule() {
+      const r = FLOOR_RULES[S.rule] || FLOOR_RULES.kokeiren;
+      if (S.rule !== 'custom') return r;
+      return Object.assign({}, r, {
+        coef: [parsePct($('cDir').value), parsePct($('cCom').value), parsePct($('cSite').value), parsePct($('cGen').value)],
+        lo: parsePct($('cLo').value), hi: parsePct($('cHi').value) || 1000,
+        round: Number($('cRound').value) || 1
+      });
+    }
+
+    // v: { dir, com, site, gen, kind, adj }（円・税抜）
+    function floorCalc(rule, v) {
+      const total = v.dir + v.com + v.site + v.gen;   // 予定価格（税抜）＝工事価格
+      if (!total) return null;
+      let dir = v.dir, site = v.site, adj = 0;
+      const isBld = rule.building && (v.kind === 'building' || v.kind === 'elevator');
+      if (isBld) {
+        adj = v.adj > 0 ? Math.min(v.adj, v.dir) : Math.floor(v.dir * (v.kind === 'elevator' ? 2 : 1) / 10);
+        dir = v.dir - adj;
+        site = v.site + adj;
+      }
+      const cd = (v.kind === 'demolish' && rule.demolish) ? rule.demolish : rule.coef[0];
+      const parts = [
+        Math.floor(dir * cd / 1000),
+        Math.floor(v.com * rule.coef[1] / 1000),
+        Math.floor(site * rule.coef[2] / 1000),
+        Math.floor(v.gen * rule.coef[3] / 1000)
+      ];
+      const raw = parts[0] + parts[1] + parts[2] + parts[3];
+      const lo = Math.ceil(total * rule.lo / 1000), hi = Math.floor(total * rule.hi / 1000);
+      const clamped = raw < lo ? 'lo' : (raw > hi ? 'hi' : '');
+      let net = Math.min(Math.max(raw, lo), hi);
+      if (rule.round > 1) net = Math.floor(net / rule.round) * rule.round;
+      const gross = Math.floor(net * 110 / 100);
+      return { total, parts, raw, lo, hi, net, gross, clamped, adj, isBld, cd, dirUsed: dir, siteUsed: site };
+    }
+
+    function onRuleChange() {
+      S.rule = $('mRule').value;
+      S.ruleManual = true;
+      renderAll();
+    }
+    // 東京都のカードから：東京都の計算式で開く
+    function openTokyoCalc() {
+      S.rule = 'tokyo';
+      S.ruleManual = true;
+      renderAll();
+      $('modelBox').open = true;
+      try { $('modelBox').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+    }
+
     function renderModel() {
-      const v = id => { const n = Number($(id).value); return n > 0 ? n * 10000 : 0; };
-      const dir = v('mDirect'), com = v('mCommon'), site = v('mSite'), gen = v('mGeneral');
-      const el = $('modelResult');
-      if (!(dir || com || site || gen)) { el.textContent = ''; return; }
-      const base = currentPrice() || (dir + com + site + gen);
-      const raw = dir * 0.97 + com * 0.90 + site * 0.90 + gen * 0.68;
-      const lo = base * 0.75, hi = base * 0.92;
-      const val = Math.min(Math.max(raw, lo), hi);
-      const pct = (val / base * 100).toFixed(2);
+      const sel = $('mRule');
+      if (!sel.options.length) sel.innerHTML = Object.keys(FLOOR_RULES).map(k => `<option value="${k}">${esc(FLOOR_RULES[k].name)}</option>`).join('');
+      sel.value = S.rule;
+      const rule = currentRule();
+      const kind = $('mKind').value;
+      $('mCustom').classList.toggle('hidden', S.rule !== 'custom');
+      $('mAdjRow').classList.toggle('hidden', !(rule.building && (kind === 'building' || kind === 'elevator')));
+      $('mRuleNote').innerHTML = esc(rule.note) + (safeUrl(rule.src) ? ` <a href="${esc(rule.src)}" target="_blank" rel="noopener noreferrer" class="underline text-amber-800 whitespace-nowrap">算定基準（公式）↗</a>` : '');
+
+      const v = { dir: parseYen($('mDirect').value), com: parseYen($('mCommon').value), site: parseYen($('mSite').value), gen: parseYen($('mGeneral').value), kind, adj: parseYen($('mAdj').value) };
+      const el = $('modelResult'), pr = $('profitResult');
+      const r = floorCalc(rule, v);
+      if (!r) {
+        el.innerHTML = '<div class="text-xs text-gray-500">4つの費目を入れると、ここに失格ラインが出ます。</div>';
+        pr.innerHTML = '';
+        return;
+      }
+      const pct = (r.net / r.total * 100).toFixed(2);
       let note = '';
-      if (raw < lo) note = '（計算値が75%未満のため75%に設定）';
-      if (raw > hi) note = '（計算値が92%を超えるため92%に設定）';
-      el.textContent = `中央公契連モデルの最低制限価格：約 ${yen(val)}（予定価格の${pct}%）${note}`;
+      if (r.clamped === 'lo') note = `（計算値が予定価格の${pctText(rule.lo)}%未満のため、${pctText(rule.lo)}%に設定）`;
+      if (r.clamped === 'hi') note = `（計算値が予定価格の${pctText(rule.hi)}%を超えるため、${pctText(rule.hi)}%に設定）`;
+      const minBid1000 = Math.ceil(r.net / 1000) * 1000;
+      const per1pct = Math.round(v.dir * r.cd / 1000 / 100);
+      const label = ['直接工事費', '共通仮設費', '現場管理費', '一般管理費等'];
+      const coefs = [r.cd, rule.coef[1], rule.coef[2], rule.coef[3]];
+      const bases = [r.dirUsed, v.com, r.siteUsed, v.gen];
+      el.innerHTML = `
+        <div class="bg-white border-2 border-rose-300 rounded-xl p-3">
+          <div class="text-xs font-extrabold text-rose-800">🚫 失格ライン（${esc(rule.short)}の計算式）</div>
+          <div class="text-2xl md:text-3xl font-extrabold text-rose-700 mt-0.5">${yen(r.net)} <span class="text-sm font-bold text-gray-700">（税抜）</span></div>
+          <div class="text-xs text-gray-700 mt-0.5">税込 ${yen(r.gross)}／予定価格（税抜）${yen(r.total)} の ${pct}%${esc(note)}</div>
+          <div class="mt-2 text-sm font-bold text-gray-900">入札額（税抜）は <span class="text-emerald-700">${yen(r.net)} 以上</span>なら失格になりません（千円単位なら ${yen(minBid1000)} 以上）</div>
+          <div class="text-[11px] text-gray-600 mt-1">直接工事費の見積もりが1%ずれると、失格ラインは約${yen(per1pct)}動きます。</div>
+        </div>
+        <details class="mt-2 text-[11px] text-gray-700">
+          <summary class="cursor-pointer font-bold">計算の内訳を見る</summary>
+          <table class="mt-1 w-full text-right">
+            ${r.isBld ? `<tr><td class="text-left pr-2">現場管理費相当額（直接工事費→現場管理費へ振替）</td><td>${yen(r.adj)}</td><td></td></tr>` : ''}
+            ${label.map((l, i) => `<tr><td class="text-left pr-2">${l} ${yen(bases[i])} × ${pctText(coefs[i])}%</td><td>${yen(r.parts[i])}</td><td class="pl-2 text-gray-400">1円未満切捨て</td></tr>`).join('')}
+            <tr class="font-bold border-t"><td class="text-left pr-2">合計</td><td>${yen(r.raw)}</td><td></td></tr>
+            <tr><td class="text-left pr-2">範囲（予定価格の${pctText(rule.lo)}%〜${pctText(rule.hi)}%）</td><td>${yen(r.lo)}〜${yen(r.hi)}</td><td></td></tr>
+            ${rule.round > 1 ? `<tr><td class="text-left pr-2">${rule.round.toLocaleString('ja-JP')}円未満切捨て</td><td>${yen(r.net)}</td><td></td></tr>` : ''}
+            <tr><td class="text-left pr-2">消費税（10%）を加えて1円未満切捨て</td><td>${yen(r.gross)}</td><td></td></tr>
+          </table>
+        </details>`;
+
+      const cost = parseYen($('mCost').value);
+      if (!cost) { pr.innerHTML = ''; return; }
+      const row = (title, bid) => {
+        const gain = bid - cost;
+        const rate = (gain / bid * 100).toFixed(1);
+        const cls = gain >= 0 ? 'text-emerald-700' : 'text-rose-700';
+        return `<div class="flex flex-wrap justify-between gap-2"><span>${title}（${yen(bid)}）</span><span class="font-bold ${cls}">${gain >= 0 ? '利益' : '赤字'} ${yen(Math.abs(gain))}（${rate}%）</span></div>`;
+      };
+      const warn = cost > r.net
+        ? `<div class="mt-1 text-rose-700 font-bold">原価が失格ラインを上回っています。失格ラインぎりぎりで取ると赤字です。</div>`
+        : `<div class="mt-1 text-gray-700">失格ラインと原価の差（利益の上限まで値下げできる幅）：<strong>${yen(r.net - cost)}</strong></div>`;
+      pr.innerHTML = `<div class="bg-white border border-gray-200 rounded-lg p-2 space-y-1">${row('失格ラインで落札', r.net)}${row('予定価格で落札', r.total)}${warn}</div>`;
     }
 
     // ===== STEP 2 =====
@@ -1221,7 +1414,8 @@
         group: '東京都の工事（都の入札情報）',
         items: [
           { name: '東京都電子調達システム（入札情報サービス）', url: 'https://www.e-procurement.metro.tokyo.lg.jp/index.jsp' },
-          { name: '東京都財務局 契約情報', url: 'https://www.zaimu.metro.tokyo.lg.jp/keiyaku/' }
+          { name: '東京都財務局 契約情報', url: 'https://www.zaimu.metro.tokyo.lg.jp/keiyaku/' },
+          { name: '東京都公文書情報公開システム（金入り設計書）', url: 'https://kobunsyo-johokokai.metro.tokyo.lg.jp/disclosure/index.html' }
         ]
       },
       {
