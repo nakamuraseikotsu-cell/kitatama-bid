@@ -240,6 +240,38 @@
         <p id="pbSource" class="text-[11px] text-gray-500 mt-3 leading-relaxed"></p>
       </details>
 
+      <!-- 見積もり（発注者ごとの単価で） -->
+      <details id="estBox" class="bg-white border-2 border-violet-300 rounded-xl p-4 md:p-5 shadow-sm">
+        <summary class="font-extrabold text-gray-900 cursor-pointer text-sm md:text-base">🧾 見積もりを作る（発注者ごとの単価・公告日の単価で）</summary>
+        <p class="text-xs text-gray-600 mt-2 leading-relaxed">発注者を選ぶと、その発注者が予定価格の積算に使う単価の種類と、公告日に使われていた版の単価で見積もりを組めます。単価は上の「単価を調べる」で探して「＋見積もりに追加」を押してください。自社の単価で行を足すこともできます。</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3 text-xs">
+          <label class="space-y-1 block"><span class="font-bold text-gray-800">発注者</span>
+            <select id="eOrg" onchange="onEstOrg()" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5 focus:outline-none focus:border-violet-500 bg-white"></select></label>
+          <label class="space-y-1 block"><span class="font-bold text-gray-800">単価の適用日（公告日）</span>
+            <input id="eDate" type="date" onchange="onEstDate()" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5 focus:outline-none focus:border-violet-500 bg-white"></label>
+        </div>
+        <div id="eOrgInfo" class="mt-2 text-[11px] text-gray-700 leading-relaxed bg-violet-50 border border-violet-200 rounded-lg p-2"></div>
+        <div id="eItems" class="mt-3"></div>
+        <div class="flex flex-wrap gap-2 mt-2 text-xs">
+          <button type="button" onclick="openPriceBook()" class="font-bold text-teal-800 bg-teal-50 border border-teal-300 rounded-lg px-3 py-1.5">📚 単価表から探して追加</button>
+          <button type="button" onclick="addEstFree()" class="font-bold text-violet-800 bg-violet-50 border border-violet-300 rounded-lg px-3 py-1.5">＋ 自社の単価で行を足す</button>
+          <button type="button" onclick="downloadEstCsv()" class="font-bold text-gray-700 bg-gray-50 border border-gray-300 rounded-lg px-3 py-1.5">⬇ CSVで保存</button>
+          <button type="button" onclick="clearEst()" class="font-bold text-rose-700 bg-white border border-rose-200 rounded-lg px-3 py-1.5">すべて消す</button>
+        </div>
+        <div class="mt-3 pt-3 border-t border-violet-200 text-xs space-y-2">
+          <div class="font-bold text-gray-800">共通費（直接工事費に対する割合で見込む）</div>
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+            <label class="space-y-0.5 block"><span class="text-gray-600">工種</span>
+              <select id="eKind" onchange="onEstKind()" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5 bg-white"></select></label>
+            <label class="space-y-0.5 block"><span class="text-gray-600">共通仮設費（直接工事費の%）</span><input id="eR1" type="text" inputmode="decimal" oninput="renderEst()" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5 text-right bg-white"></label>
+            <label class="space-y-0.5 block"><span class="text-gray-600">現場管理費（直接工事費の%）</span><input id="eR2" type="text" inputmode="decimal" oninput="renderEst()" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5 text-right bg-white"></label>
+            <label class="space-y-0.5 block"><span class="text-gray-600">一般管理費等（工事原価の%）</span><input id="eR3" type="text" inputmode="decimal" oninput="renderEst()" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5 text-right bg-white"></label>
+          </div>
+          <div id="eRateNote" class="text-[11px] text-gray-600"></div>
+          <div id="eTotal"></div>
+        </div>
+      </details>
+
       <!-- 公式の入札ページ（この一覧にない案件の確認用） -->
       <details id="linkBox" class="bg-white border-2 border-slate-200 rounded-xl p-4 text-sm">
         <summary class="font-bold text-gray-900 cursor-pointer">📎 東京都・各市の工事は、公式の入札ページで確認（リンク集）</summary>
@@ -284,6 +316,7 @@
         <details id="modelBox" open class="bg-amber-50 border-2 border-amber-300 rounded-xl p-3 md:p-4">
           <summary class="text-sm md:text-base font-extrabold text-amber-900 cursor-pointer">🧮 失格ライン（最低制限価格）を円単位で計算する</summary>
           <button type="button" onclick="openPriceBook()" class="mt-2 text-xs font-bold text-teal-800 underline">📚 東京都の公式単価（材料・労務）を調べる</button>
+          <button type="button" onclick="openEst()" class="mt-2 ml-3 text-xs font-bold text-violet-800 underline">🧾 見積もりから4つの費目を作る</button>
           <p class="text-[11px] md:text-xs text-gray-700 mt-2 leading-relaxed">設計書の「工事費総括表（総括書）」にある4つの費目を入れると、発注者の計算式どおりに失格ラインを出します。落札は失格ラインの数万円上で決まることが多いので、<strong>円単位</strong>で入れてください（カンマ付きの貼り付けもできます）。</p>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3 text-xs">
             <label class="space-y-1 block"><span class="font-bold text-gray-800">発注者の計算ルール</span>
@@ -410,6 +443,11 @@
             <button onclick="changeSort('LIKELY', this)" class="sort-btn text-gray-600 hover:text-slate-900 px-2.5 py-1 rounded transition cursor-pointer">参加可能性が高い順</button>
             <button onclick="changeSort('RATE', this)" class="sort-btn text-gray-600 hover:text-slate-900 px-2.5 py-1 rounded transition cursor-pointer">平均落札率が低い順</button>
           </div>
+        </div>
+
+        <div id="compCard" class="mb-4 bg-indigo-50 border-2 border-indigo-200 rounded-xl p-3 md:p-4">
+          <div class="text-sm md:text-base font-extrabold text-indigo-900">🏢 この工事に入札しそうな会社（過去1年の入札結果から推定）</div>
+          <div id="compBody" class="mt-2 text-xs text-gray-700">案件を選ぶと表示します。</div>
         </div>
 
         <div id="rivalEmpty" class="hidden bg-slate-50 border border-dashed border-slate-300 rounded-xl p-6 text-center space-y-1">
@@ -691,6 +729,8 @@
       if (!S.data.operator) show('opWarn');
       document.querySelectorAll('.lead-open, #unlockBtn').forEach(b => { b.disabled = !S.data.operator; });
 
+      if (!estRestore()) { EST.date = todayIso(); onEstKindDefaults(); }
+      renderEst();
       renderPartners();
       renderTokyo();
       renderPrivacy();
@@ -801,6 +841,7 @@
       $('ddDate').textContent = S.cur.openDate ? `【開札 ${jpDate(S.cur.openDate)}】` : `【公告 ${jpDate(S.cur.cftDate)}】`;
       $('ddOrg').textContent = S.cur.org + (S.cur.city ? `（${S.cur.city}）` : '');
       $('ddTitle').textContent = S.cur.title;
+      estSyncProject(S.cur);
       renderAll();
     }
 
@@ -820,7 +861,7 @@
       renderAll();
     }
 
-    function renderAll() { renderDetail(); renderModel(); renderRivals(); renderStaff(); }
+    function renderAll() { renderDetail(); renderModel(); renderComp(); renderRivals(); renderStaff(); }
 
     // ===== 案件詳細 =====
     function renderDetail() {
@@ -1133,7 +1174,7 @@
       const price = parseYen($('mVarPrice').value);
       const others = parseYenList($('mVarBids').value);
       const mine = parseYen($('mVarMine').value);
-      const hist = (typeof varFloorHistory === 'function') ? varFloorHistory(S.city) : '';
+      const hist = varFloorHistory();
       $('mVarHist').innerHTML = hist;
       const r = varFloorCalc(mine ? others.concat([mine]) : others, price, rule.hi);
       const safe = price ? `<div class="text-[11px] text-gray-700 mt-1">どんな札の組み合わせでも、<strong>${yen(Math.floor(price * rule.hi / 1000))}（予定価格の${pctText(rule.hi)}%）以上</strong>なら失格になりません。</div>` : '';
@@ -1306,6 +1347,102 @@
     // ===== 単価を調べる（東京都工事設計単価表） =====
     const PRICE_BOOK_URL = 'https://nyusatsu.ma-ko-to-jp.com/data/unit_prices/unit_prices.json';
     const PB = { data: null, loading: null, text: null, names: null };
+    // ===== 競合の推定（国立市・立川市の入札経過の集計） =====
+    const COMP_URL = 'https://nyusatsu.ma-ko-to-jp.com/data/bids/competitors.json';
+    // 工種の判定（tools/build_competitors.py の KINDS と同じ並び・同じ条件）
+    const COMP_KINDS = [
+      ['下水道', /下水|管渠|管きょ|汚水|雨水|マンホール/],
+      ['水道', /水道|配水|給水管/],
+      ['電気', /電気|照明|LED|受変電|自家発|発電|電設|放送|防災行政無線|信号|太陽光|キュービクル|非常用/],
+      ['空調・給排水', /空調|冷暖房|給排水|衛生|換気|ガス|ポンプ|ボイラ|管工事|機械設備/],
+      ['舗装・道路', /舗装|道路|街路|路面|歩道|交差点|市道|道の|区画線/],
+      ['公園・造園', /公園|緑地|造園|植栽|樹木|遊具/],
+      ['建築', /建築|改修|改築|新築|増築|屋上|屋根|防水|外壁|内装|トイレ|塗装|解体|体育館|校舎|庁舎|保育園|学童|施設/],
+      ['土木', /改良|築造|護岸|橋|河川|擁壁|土木|整備|水路|排水/]
+    ];
+    const COMP_BANDS = [5000000, 20000000, 50000000];
+    const COMP = { data: null, loading: null, failed: false };
+    function compKindOf(title) {
+      const t = String(title || '').normalize('NFKC');
+      for (let i = 0; i < COMP_KINDS.length; i++) if (COMP_KINDS[i][1].test(t)) return i;
+      return COMP_KINDS.length;
+    }
+    function compBandOf(price) {
+      if (!price) return null;
+      let i = 0;
+      while (i < COMP_BANDS.length && price >= COMP_BANDS[i]) i++;
+      return i;
+    }
+    function loadComp() {
+      if (COMP.data) return Promise.resolve(COMP.data);
+      if (COMP.loading) return COMP.loading;
+      if (typeof window.fetch !== 'function') { COMP.failed = true; return Promise.resolve(null); }
+      COMP.loading = window.fetch(COMP_URL, { credentials: 'omit', cache: 'no-cache' })
+        .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .then(d => { COMP.data = d; COMP.failed = false; renderComp(); if (S.rule === 'tachikawa') renderModel(); return d; })
+        .catch(e => { COMP.loading = null; COMP.failed = true; renderComp(); });
+      return COMP.loading;
+    }
+    // 似た工事が5件以上ある、いちばん細かい分け方を使う
+    function compPick(d, city, kind, band) {
+      const tries = [[kind, band], [kind, 'A'], ['A', band], ['A', 'A']];
+      for (const [k, b] of tries) {
+        if (b === null) continue;
+        const cell = d.cells[`${city}|${k}|${b}`];
+        if (cell && (cell.n >= 5 || (k === 'A' && b === 'A'))) return { cell, k, b };
+      }
+      return null;
+    }
+    function compCities(d) {
+      return Object.keys(d.sources || {}).filter(c => d.sources[c].cases > 0);
+    }
+    function renderComp() {
+      const el = $('compBody');
+      if (!el) return;
+      const p = S.cur;
+      if (!p) { el.innerHTML = '案件を選ぶと表示します。'; return; }
+      const d = COMP.data;
+      if (!d) {
+        el.innerHTML = COMP.failed ? '入札結果の集計を読み込めませんでした。時間をおいて開き直してください。' : '過去の入札結果を読み込んでいます…';
+        if (!COMP.failed) loadComp();
+        return;
+      }
+      const city = p.city || '';
+      const cities = compCities(d);
+      if (!cities.includes(city)) {
+        el.innerHTML = `<div>${esc(city || 'この発注者')}は、入札した全業者と金額を市のサイトで公開していないため、推定できません。</div><div class="text-[11px] text-gray-500 mt-1">いま推定できるのは ${esc(cities.join('・') || '—')} の工事です（市が公開している入札経過をもとにしています）。</div>`;
+        return;
+      }
+      const kind = compKindOf(p.title), band = compBandOf(currentPrice());
+      const pick = compPick(d, city, kind, band);
+      if (!pick) { el.innerHTML = `${esc(city)}の過去1年の入札結果に、似た工事が見つかりませんでした。`; return; }
+      const { cell, k, b } = pick;
+      const cond = [k === 'A' ? 'すべての工種' : d.kinds[k], b === 'A' ? 'すべての金額' : d.bands[b]].join('・');
+      const src = d.sources[city];
+      const rows = cell.firms.slice(0, 15).map(([ci, bids, wins, rate]) => {
+        const pct = Math.round(bids / cell.n * 100);
+        return `<tr class="border-t border-indigo-100">
+          <td class="py-1.5 pr-2 font-bold text-gray-900">${esc(d.companies[ci])}</td>
+          <td class="py-1.5 pr-2 w-[34%]"><div class="flex items-center gap-1.5"><div class="h-2 rounded bg-indigo-500" style="width:${Math.max(4, pct)}%"></div><span class="font-bold text-indigo-900 whitespace-nowrap">${pct}%</span></div><div class="text-[10px] text-gray-500">${cell.n}件中${bids}件に入札</div></td>
+          <td class="py-1.5 pr-2 text-center">${wins ? wins + '件' : '—'}</td>
+          <td class="py-1.5 text-right whitespace-nowrap">${rate !== null && rate !== undefined ? rate.toFixed(1) + '%' : '—'}</td>
+        </tr>`;
+      }).join('');
+      el.innerHTML = `
+        <div>似た工事（${esc(city)}・${esc(cond)}）は過去1年で<strong>${cell.n}件</strong>、1件あたり平均<strong>${cell.avgBidders}社</strong>が入札しました。</div>
+        <div class="overflow-x-auto mt-2"><table class="w-full text-left text-xs min-w-[460px]">
+          <thead><tr class="text-[11px] text-gray-600"><th class="py-1 pr-2">会社名</th><th class="py-1 pr-2">入札してくる確率の目安</th><th class="py-1 pr-2 text-center">落札</th><th class="py-1 text-right">平均入札率</th></tr></thead>
+          <tbody>${rows}</tbody></table></div>
+        <div class="text-[11px] text-gray-500 mt-2 leading-relaxed">※確率は「似た工事のうち、その会社が入札した割合」です。指名競争入札では市が選ぶ会社によって変わります。平均入札率は入札額÷予定価格（税抜）です。<br>出典：<a href="${esc(safeUrl(src.url))}" target="_blank" rel="noopener noreferrer" class="underline">${esc(city)}の入札結果</a>（${esc(jpDate(src.from))}〜${esc(jpDate(src.to))}の工事${src.cases}件）。${esc(d.note)}</div>`;
+    }
+    // 立川市の変動型：過去の実績（最低制限価格÷予定価格）
+    function varFloorHistory() {
+      const f = COMP.data && COMP.data.floors && COMP.data.floors['立川市'];
+      if (!COMP.data) { loadComp(); return ''; }
+      if (!f || !f.n) return '';
+      return `📊 立川市の過去1年の工事（${f.n}件）では、最低制限価格は予定価格の平均${f.avg}%（${f.min}%〜${f.max}%）でした。${f.none ? `有効な札が少なく最低制限価格が設けられなかった工事も${f.none}件ありました。` : ''}`;
+    }
+
     function loadPriceBook() {
       if (PB.data) return Promise.resolve(PB.data);
       if (PB.loading) return PB.loading;
@@ -1355,10 +1492,10 @@
       $('pbStatus').textContent = hits.length
         ? `${hits.length.toLocaleString('ja-JP')}件見つかりました${hits.length > 50 ? '（上位50件を表示。語を足すと絞り込めます）' : ''}`
         : '見つかりませんでした。別の言い方や、規格の数字だけでも試してください（市販の物価資料に載っている資材は、都の単価表にはありません）。';
-      $('pbResults').innerHTML = shown.map(i => priceRowHtml(d, d.items[i])).join('');
+      $('pbResults').innerHTML = shown.map(i => priceRowHtml(d, d.items[i], i)).join('');
     }
     const fmtNum = n => Number(n).toLocaleString('ja-JP', { maximumFractionDigits: 2 });
-    function priceRowHtml(d, it) {
+    function priceRowHtml(d, it, idx) {
       const ci = it[0], name = it[1], spec = it[2], unit = it[3], hist = it[4], note = it[5];
       const last = hist[hist.length - 1];
       const lastV = d.versions[last[0]] || { issued: '' };
@@ -1379,7 +1516,240 @@
           </div>
           <div class="text-[11px] text-gray-600 mt-0.5">${esc(jpDate(lastV.issued))}発行${change ? '　' + change : ''}</div>
           ${note ? `<div class="text-[11px] text-gray-500 mt-0.5">${esc(note)}</div>` : ''}
+          ${idx !== undefined && typeof last[1] === 'number' ? `<button type="button" onclick="addEstFromBook(${Number(idx)})" class="mt-1 text-[11px] font-bold text-violet-800 bg-violet-50 border border-violet-300 rounded px-2 py-0.5">＋見積もりに追加</button>` : ''}
         </div>`;
+    }
+
+    // ===== 見積もり（発注者ごとの単価） =====
+    // cats: その発注者が使う単価表の区分（東京都工事設計単価表の区分名）。null は「単価表を使わない／公開されていない」
+    const ORDERERS = [
+      { id: 'tokyo', name: '東京都（財務局・各局の建築・設備・土木）', cats: ['建築資材(財務)', '建設資材', '共通資材', '公共工事設計労務単価'], rule: 'tokyo',
+        text: '東京都が発注する工事は、東京都財務局の「東京都工事設計単価表」と都の積算基準で予定価格を積算します。建築・設備は「建築資材（財務）」、土木は「建設資材」の区分の単価です。',
+        src: 'https://www.zaimu.metro.tokyo.lg.jp/kenchiku/eizen/eizen-tanka' },
+      { id: 'jutaku', name: '東京都（都営住宅の工事）', cats: ['建築資材(都営住宅)', '共通資材', '公共工事設計労務単価'], rule: 'tokyo',
+        text: '都営住宅の工事は、東京都工事設計単価表の「建築資材（都営住宅）」の区分の単価を使います。',
+        src: 'https://www.zaimu.metro.tokyo.lg.jp/kenchiku/eizen/eizen-tanka' },
+      { id: 'gesui', name: '東京都 下水道局', cats: ['下水道資材', '共通資材', '公共工事設計労務単価'], rule: 'tokyo',
+        text: '下水道局の工事は、東京都工事設計単価表の「下水道資材」の区分と、局の積算基準を使います。局独自の標準単価や見積単価もあるため、設計書・公告の積算条件で確かめてください。',
+        src: 'https://www.zaimu.metro.tokyo.lg.jp/kenchiku/eizen/eizen-tanka' },
+      { id: 'suido', name: '東京都 水道局', cats: ['水道資材', '共通資材', '公共工事設計労務単価'], rule: 'tokyo',
+        text: '水道局の配水管工事は、局の「水道局設計単価表」で積算します。この単価表はインターネットでは公開されておらず、都庁の都民情報ルームで閲覧できます。ここでは東京都工事設計単価表の「水道資材」の区分で概算します。',
+        src: 'https://www.waterworks.metro.tokyo.lg.jp/documents/d/waterworks/106022005008-080801-1' },
+      { id: 'keishicho', name: '警視庁（警察署・機動隊など）', cats: ['建築資材(財務)', '建設資材', '共通資材', '公共工事設計労務単価'], rule: 'tokyo',
+        text: '警視庁が発注する工事は東京都の工事なので、東京都工事設計単価表と都の積算基準で積算します。ただし警察学校など一部の施設は、国（関東地方整備局の営繕事務所）が発注することがあり、その場合は国の基準です。公告の発注者名で確かめてください。',
+        src: 'https://www.ktr.mlit.go.jp/kisha/kisha_03287.pdf' },
+      { id: 'kuni', name: '国（関東地方整備局など）', cats: ['公共工事設計労務単価'], rule: 'kokeiren',
+        text: '国の工事は、国土交通省の公共建築工事積算基準・土木工事標準積算基準書と公共工事設計労務単価で積算します。労務単価は東京都の単価表と同じ値ですが、材料の多くは市販の物価資料の価格（転載できないため、このツールにはありません）です。材料はご自身の物価資料の単価を入れてください。',
+        src: 'https://www.mlit.go.jp/gobuild/gobuild_tk2_000017.html' },
+      { id: 'city', name: '北多摩の各市', cats: ['建築資材(財務)', '建設資材', '下水道資材', '水道資材', '共通資材', '公共工事設計労務単価'], rule: '',
+        text: '市の工事は、東京都の単価表を使う市、独自の単価を使う市など、市ごとに違います。公告や設計書の「積算条件」で確かめてください。下水道工事は、多摩地区の市町村で共通の積算基準（東京都多摩地区下水道事業積算施工適正化委員会）を使う市があります。',
+        src: '' }
+    ];
+    // 工種ごとの共通費の割合（東京都の設計書を閲覧して記録した実績の平均）。件数が増えると更新する
+    const EST_RATES = {
+      '建築': { n: 1, r1: 8.51, r2: 8.66, r3: 9.01 },
+      '土木': null, '電気設備': null, '機械設備': null, '舗装': null, '下水道': null
+    };
+    const EST = { items: [], org: 'tokyo', date: '', kind: '建築' };
+    const EST_KEY = 'kitatama-estimate-v1';
+    function estSave() {
+      try { window.localStorage.setItem(EST_KEY, JSON.stringify({ items: EST.items, org: EST.org, date: EST.date, kind: EST.kind, r: [$('eR1').value, $('eR2').value, $('eR3').value] })); } catch (e) {}
+    }
+    function estRestore() {
+      try {
+        const v = JSON.parse(window.localStorage.getItem(EST_KEY) || 'null');
+        if (v && Array.isArray(v.items)) {
+          EST.items = v.items; EST.org = v.org || 'tokyo'; EST.date = v.date || ''; EST.kind = v.kind || '建築';
+          if (Array.isArray(v.r)) { $('eR1').value = v.r[0] || ''; $('eR2').value = v.r[1] || ''; $('eR3').value = v.r[2] || ''; }
+          return true;
+        }
+      } catch (e) {}
+      return false;
+    }
+    const todayIso = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+    // 適用日に有効だった版の単価（その日より前に発行された最新の版）
+    function priceAt(d, it, dateIso) {
+      const hist = it[4].filter(h => typeof h[1] === 'number');
+      if (!hist.length) return null;
+      let pick = null;
+      for (const h of hist) if (!dateIso || d.versions[h[0]].issued <= dateIso) pick = h;
+      const early = !pick;
+      if (!pick) pick = hist[0];
+      return { price: pick[1], issued: d.versions[pick[0]].issued, early };
+    }
+    function onEstKindDefaults() { const r = EST_RATES[EST.kind]; if (r) { $('eR1').value = r.r1; $('eR2').value = r.r2; $('eR3').value = r.r3; } }
+    function ordererOf(org) {
+      const o = String(org || '');
+      if (/下水道局/.test(o)) return 'gesui';
+      if (/水道局/.test(o)) return 'suido';
+      if (/警視庁/.test(o)) return 'keishicho';
+      if (/住宅政策|都営住宅/.test(o)) return 'jutaku';
+      if (/国土交通省|地方整備局|防衛|財務省|法務省|厚生労働省|農林水産省|総務省|文部科学省|環境省/.test(o)) return 'kuni';
+      if (/市$|市役所|市長|市（|市\(/.test(o) || /[^都]市/.test(o.replace(/^東京都/, ''))) return 'city';
+      if (/東京都/.test(o)) return 'tokyo';
+      return 'city';
+    }
+    // 見積もりが空のときだけ、選んだ案件の発注者と公告日に合わせる（作りかけの見積もりは動かさない）
+    function estSyncProject(p) {
+      if (!p || EST.items.length) return;
+      EST.org = ordererOf(p.org);
+      if (p.cftDate) { EST.date = p.cftDate; $('eDate').value = p.cftDate; }
+      renderEst();
+    }
+    function estOrg() { return ORDERERS.find(o => o.id === EST.org) || ORDERERS[0]; }
+    function openEst() {
+      $('estBox').open = true;
+      renderEst();
+      try { $('estBox').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+    }
+    function addEstFromBook(i) {
+      const d = PB.data;
+      if (!d || !d.items[i]) return;
+      const it = d.items[i];
+      const p = priceAt(d, it, EST.date);
+      if (!p) return;
+      EST.items.push({ src: 'book', idx: i, cat: d.categories[it[0]], name: it[1], spec: it[2], unit: it[3], price: p.price, issued: p.issued, early: p.early, qty: '', manual: false });
+      $('estBox').open = true;
+      renderEst();
+      const btn = window.event && window.event.target;
+      if (btn && btn.tagName === 'BUTTON') { btn.textContent = '✓ 追加しました'; btn.disabled = true; }
+    }
+    function addEstFree() {
+      EST.items.push({ src: 'own', name: '', spec: '', unit: '', price: '', qty: '', manual: true });
+      renderEst();
+    }
+    function clearEst() { EST.items = []; renderEst(); }
+    function onEstOrg() {
+      EST.org = $('eOrg').value;
+      renderEst();
+      // 単価表の区分も、その発注者が使うものに合わせる
+      const o = estOrg();
+      if (PB.data && o.cats && o.cats.length === 1) {
+        const ci = PB.data.categories.indexOf(o.cats[0]);
+        if (ci >= 0) { $('pbCat').value = String(ci); searchPriceBook(); }
+      }
+    }
+    function onEstDate() {
+      EST.date = $('eDate').value || '';
+      const d = PB.data;
+      if (d) EST.items.forEach(x => {
+        if (x.src === 'book' && !x.manual && d.items[x.idx]) {
+          const p = priceAt(d, d.items[x.idx], EST.date);
+          if (p) { x.price = p.price; x.issued = p.issued; x.early = p.early; }
+        }
+      });
+      renderEst();
+    }
+    function onEstKind() {
+      EST.kind = $('eKind').value;
+      const r = EST_RATES[EST.kind];
+      if (r) { $('eR1').value = r.r1; $('eR2').value = r.r2; $('eR3').value = r.r3; }
+      renderEst();
+    }
+    function estField(i, key, el) {
+      const x = EST.items[i];
+      if (!x) return;
+      if (key === 'price') { x.price = el.value; x.manual = true; }
+      else x[key] = el.value;
+      renderEstTotals();
+      estSave();
+    }
+    function estRemove(i) { EST.items.splice(i, 1); renderEst(); }
+    const numOf = v => { const t = String(v === undefined || v === null ? '' : v).replace(/[０-９．]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)).replace(/[^0-9.]/g, ''); const n = Number(t); return isFinite(n) && t !== '' ? n : 0; };
+    function estDirect() { return EST.items.reduce((a, x) => a + Math.floor(numOf(x.price) * numOf(x.qty)), 0); }
+    function renderEst() {
+      const sel = $('eOrg');
+      if (!sel.options.length) sel.innerHTML = ORDERERS.map(o => `<option value="${o.id}">${esc(o.name)}</option>`).join('');
+      sel.value = EST.org;
+      const ks = $('eKind');
+      if (!ks.options.length) ks.innerHTML = Object.keys(EST_RATES).map(k => `<option value="${esc(k)}">${esc(k)}</option>`).join('');
+      ks.value = EST.kind;
+      if (!$('eDate').value && EST.date) $('eDate').value = EST.date;
+      const o = estOrg();
+      const cats = o.cats ? `使う単価表の区分：${o.cats.map(esc).join('・')}` : '';
+      $('eOrgInfo').innerHTML = `${esc(o.text)}${cats ? '<br>' + cats : ''}${safeUrl(o.src) ? ` <a href="${esc(o.src)}" target="_blank" rel="noopener noreferrer" class="underline text-violet-800 whitespace-nowrap">根拠（公式）↗</a>` : ''}`;
+      const d = PB.data;
+      const rows = EST.items.map((x, i) => {
+        const off = x.src === 'book' && o.cats && x.cat && o.cats.indexOf(x.cat) < 0;
+        const srcTxt = x.src === 'book'
+          ? `${esc(jpDate(x.issued))}版${x.early ? '（適用日より前の版がないため最初の版）' : ''}${x.manual ? '・単価を手で変更' : ''}${off ? '<br><span class="text-amber-700 font-bold">この発注者が使う区分ではありません</span>' : ''}`
+          : '自社の単価';
+        const nameCell = x.src === 'book'
+          ? `<div class="font-bold text-gray-900">${esc(x.name)}</div><div class="text-[10px] text-gray-500">${esc(x.spec)}</div>`
+          : `<input type="text" value="${esc(x.name)}" placeholder="品名・規格" oninput="estField(${i},'name',this)" class="w-full border border-gray-300 rounded px-1 py-0.5">`;
+        const unitCell = x.src === 'book' ? esc(x.unit) : `<input type="text" value="${esc(x.unit)}" placeholder="単位" oninput="estField(${i},'unit',this)" class="w-12 border border-gray-300 rounded px-1 py-0.5">`;
+        return `<tr class="border-t border-gray-100 align-top">
+          <td class="py-1 pr-1">${nameCell}<div class="text-[10px] text-gray-500 mt-0.5">${srcTxt}</div></td>
+          <td class="py-1 pr-1 whitespace-nowrap">${unitCell}</td>
+          <td class="py-1 pr-1"><input type="text" inputmode="decimal" value="${esc(x.price)}" oninput="estField(${i},'price',this)" class="w-24 border border-gray-300 rounded px-1 py-0.5 text-right"></td>
+          <td class="py-1 pr-1"><input type="text" inputmode="decimal" value="${esc(x.qty)}" placeholder="数量" oninput="estField(${i},'qty',this)" class="w-20 border border-gray-300 rounded px-1 py-0.5 text-right"></td>
+          <td class="py-1 pr-1 text-right whitespace-nowrap font-bold" data-amt="${i}">${yen(Math.floor(numOf(x.price) * numOf(x.qty)))}</td>
+          <td class="py-1 text-right"><button type="button" onclick="estRemove(${i})" class="text-rose-600 font-bold px-1" aria-label="この行を消す">×</button></td>
+        </tr>`;
+      }).join('');
+      $('eItems').innerHTML = EST.items.length
+        ? `<div class="overflow-x-auto"><table class="w-full text-left text-xs min-w-[560px]"><thead><tr class="text-[11px] text-gray-600"><th class="py-1">品名・規格</th><th class="py-1">単位</th><th class="py-1">単価（円）</th><th class="py-1">数量</th><th class="py-1 text-right">金額</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`
+        : '<div class="text-xs text-gray-500">まだ行がありません。単価表で探して「＋見積もりに追加」を押すか、自社の単価で行を足してください。</div>';
+      const r = EST_RATES[EST.kind];
+      $('eRateNote').textContent = r
+        ? `${EST.kind}の割合の初期値は、東京都の設計書を閲覧して記録した実績${r.n}件の平均です（件数が増えると更新します）。公告・設計書の値が分かれば上書きしてください。`
+        : `${EST.kind}の実績はまだ記録がありません。公告や過去の設計書の割合を入れてください。`;
+      renderEstTotals();
+      estSave();
+    }
+    function renderEstTotals() {
+      EST.items.forEach((x, i) => { const c = document.querySelector(`[data-amt="${i}"]`); if (c) c.textContent = yen(Math.floor(numOf(x.price) * numOf(x.qty))); });
+      const dir = estDirect();
+      const r1 = numOf($('eR1').value), r2 = numOf($('eR2').value), r3 = numOf($('eR3').value);
+      const com = Math.floor(dir * r1 / 100), site = Math.floor(dir * r2 / 100);
+      const gen = Math.floor((dir + com + site) * r3 / 100);
+      const total = dir + com + site + gen;
+      EST.calc = { dir, com, site, gen, total };
+      $('eTotal').innerHTML = dir
+        ? `<div class="bg-violet-50 border border-violet-200 rounded-lg p-2 space-y-0.5">
+            <div class="flex justify-between"><span>直接工事費</span><span class="font-bold">${yen(dir)}</span></div>
+            <div class="flex justify-between"><span>共通仮設費</span><span>${yen(com)}</span></div>
+            <div class="flex justify-between"><span>現場管理費</span><span>${yen(site)}</span></div>
+            <div class="flex justify-between"><span>一般管理費等</span><span>${yen(gen)}</span></div>
+            <div class="flex justify-between border-t border-violet-200 pt-1 font-extrabold text-violet-900"><span>工事価格の見込み（税抜）</span><span>${yen(total)}</span></div>
+            <button type="button" onclick="estToCalc()" class="mt-1 w-full font-bold text-white bg-violet-700 hover:bg-violet-800 rounded-lg px-3 py-1.5">この4つの費目で失格ラインを計算する ↓</button>
+          </div>`
+        : '';
+    }
+    function estToCalc() {
+      const c = EST.calc;
+      if (!c || !c.dir) return;
+      $('mDirect').value = c.dir.toLocaleString('ja-JP');
+      $('mCommon').value = c.com.toLocaleString('ja-JP');
+      $('mSite').value = c.site.toLocaleString('ja-JP');
+      $('mGeneral').value = c.gen.toLocaleString('ja-JP');
+      const o = estOrg();
+      if (o.rule && !FLOOR_RULES[S.rule]?.variable) { S.rule = o.rule; S.ruleManual = true; }
+      $('mKind').value = EST.kind === '建築' ? 'building' : 'general';
+      renderAll();
+      $('modelBox').open = true;
+      try { $('modelBox').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+    }
+    function estCsv() {
+      const q = v => '"' + String(v === undefined || v === null ? '' : v).replace(/"/g, '""') + '"';
+      const o = estOrg();
+      const lines = [['発注者', o.name], ['単価の適用日', EST.date || '（指定なし：最新の版）'], [], ['品名', '規格', '単位', '単価', '数量', '金額', '単価の出典']];
+      EST.items.forEach(x => lines.push([x.name, x.spec || '', x.unit || '', numOf(x.price), numOf(x.qty), Math.floor(numOf(x.price) * numOf(x.qty)),
+        x.src === 'book' ? `東京都工事設計単価表 ${x.issued}版${x.manual ? '（単価を手で変更）' : ''}` : '自社の単価']));
+      const c = EST.calc || { dir: 0, com: 0, site: 0, gen: 0, total: 0 };
+      lines.push([], ['直接工事費', '', '', '', '', c.dir], ['共通仮設費', `${$('eR1').value}%`, '', '', '', c.com], ['現場管理費', `${$('eR2').value}%`, '', '', '', c.site],
+        ['一般管理費等', `${$('eR3').value}%`, '', '', '', c.gen], ['工事価格の見込み（税抜）', '', '', '', '', c.total], [],
+        ['出典：東京都財務局「東京都工事設計単価表」（CC BY）を加工して作成']);
+      return '﻿' + lines.map(l => l.map(q).join(',')).join('\r\n');
+    }
+    function downloadEstCsv() {
+      try {
+        const blob = new Blob([estCsv()], { type: 'text/csv' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = '見積もり_' + todayIso() + '.csv';
+        document.body.appendChild(a); a.click(); a.remove();
+      } catch (e) {}
     }
 
     // ===== 東京都の発注予定（件数だけ） =====
