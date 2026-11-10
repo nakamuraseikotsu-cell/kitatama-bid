@@ -8,6 +8,7 @@ on:
     paths:
       - 'tools/fetch_bid_results.py'
       - 'tools/build_competitors.py'
+      - 'tools/shape_bid_pdfs.py'
       - '.github/workflows/bid-results.yml'
 permissions:
   contents: write
@@ -31,9 +32,10 @@ jobs:
           restore-keys: bids-raw-
       - run: python tools/fetch_bid_results.py
       - run: python tools/build_competitors.py
+      - run: python tools/shape_bid_pdfs.py
       - name: 変更があればコミット
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/bids/competitors.json data/bids/report.json
+          git add data/bids/competitors.json data/bids/report.json data/bids/debug_shape.txt
           if git diff --cached --quiet; then echo "変更なし"; else git commit -m "国立市・立川市の入札経過の集計を更新（自動）" && git pull --rebase && git push; fi
