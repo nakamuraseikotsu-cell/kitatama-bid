@@ -1,0 +1,31 @@
+name: 東京都工事設計単価表の取り込み
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '47 20 * * *'   # 毎日 5:47（日本時間）。更新があったときだけコミットする
+  push:
+    branches: [main]
+    paths:
+      - 'tools/fetch_unit_prices.py'
+      - 'tools/build_unit_prices.py'
+      - '.github/workflows/unit-prices.yml'
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install openpyxl==3.1.5
+      - run: python tools/fetch_unit_prices.py
+      - run: |
+          if [ -f tools/build_unit_prices.py ]; then python tools/build_unit_prices.py; fi
+      - name: 変更があればコミット
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/unit_prices
+          if git diff --cached --quiet; then echo "変更なし"; else git commit -m "東京都工事設計単価表を更新（自動）" && git push; fi
