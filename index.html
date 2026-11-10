@@ -1549,9 +1549,18 @@
         src: '' }
     ];
     // 工種ごとの共通費の割合（東京都の設計書を閲覧して記録した実績の平均）。件数が増えると更新する
+    // 工種ごとの共通費の割合（東京都の設計書を閲覧して記録した実績の中央値と範囲。2026年11月10日時点）
     const EST_RATES = {
-      '建築': { n: 1, r1: 8.51, r2: 8.66, r3: 9.01 },
-      '土木': null, '電気設備': null, '機械設備': null, '舗装': null, '下水道': null
+      '建築': { n: 3, r1: 8.51, r2: 8.66, r3: 10.46, lo: [4.3, 8.3, 9.0], hi: [12.8, 14.4, 13.1], dmin: 90562009, dmax: 1674768403 },
+      '電気設備': { n: 4, r1: 4.28, r2: 23.19, r3: 9.86, lo: [2.9, 10.7, 6.4], hi: [23.5, 65.8, 20.1], dmin: 12409273, dmax: 1932374894 },
+      '機械設備': { n: 2, r1: 5.14, r2: 22.05, r3: 11.16, lo: [4.9, 17.3, 10.3], hi: [5.4, 26.9, 12.0], dmin: 78066920, dmax: 226564902 },
+      '土木': { n: 5, r1: 17.55, r2: 43.71, r3: 16.24, lo: [13.2, 36.9, 15.6], hi: [32.4, 62.0, 20.8], dmin: 8222901, dmax: 120061764 },
+      '舗装': { n: 10, r1: 14.44, r2: 37.49, r3: 16.62, lo: [12.3, 28.2, 13.5], hi: [16.8, 39.1, 17.1], dmin: 52750195, dmax: 335121779 },
+      '交通安全施設': { n: 2, r1: 16.32, r2: 60.96, r3: 20.33, lo: [13.7, 54.7, 20.1], hi: [19.0, 67.2, 20.6], dmin: 10781255, dmax: 27233697 },
+      '橋梁補修・塗装': { n: 2, r1: 39.83, r2: 64.11, r3: 18.16, lo: [29.2, 56.7, 17.4], hi: [50.5, 71.5, 18.9], dmin: 19299249, dmax: 46933218 },
+      '公園・造園': { n: 1, r1: 15.36, r2: 55.81, r3: 18.85, lo: [15.4, 55.8, 18.9], hi: [15.4, 55.8, 18.9], dmin: 22246448, dmax: 22246448 },
+      '撤去・解体': { n: 1, r1: 53.46, r2: 62.24, r3: 15.73, lo: [53.5, 62.2, 15.7], hi: [53.5, 62.2, 15.7], dmin: 87411192, dmax: 87411192 },
+      '下水道': null
     };
     const EST = { items: [], org: 'tokyo', date: '', kind: '建築' };
     const EST_KEY = 'kitatama-estimate-v1';
@@ -1694,8 +1703,9 @@
         ? `<div class="overflow-x-auto"><table class="w-full text-left text-xs min-w-[560px]"><thead><tr class="text-[11px] text-gray-600"><th class="py-1">品名・規格</th><th class="py-1">単位</th><th class="py-1">単価（円）</th><th class="py-1">数量</th><th class="py-1 text-right">金額</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`
         : '<div class="text-xs text-gray-500">まだ行がありません。単価表で探して「＋見積もりに追加」を押すか、自社の単価で行を足してください。</div>';
       const r = EST_RATES[EST.kind];
+      const man = v => (v / 10000).toLocaleString('ja-JP', { maximumFractionDigits: 0 }) + '万円';
       $('eRateNote').textContent = r
-        ? `${EST.kind}の割合の初期値は、東京都の設計書を閲覧して記録した実績${r.n}件の平均です（件数が増えると更新します）。公告・設計書の値が分かれば上書きしてください。`
+        ? `${EST.kind}の初期値は、東京都の設計書を閲覧して記録した実績${r.n}件の中央値です（直接工事費${man(r.dmin)}〜${man(r.dmax)}の工事）。${r.n > 1 ? `幅は、共通仮設費${r.lo[0]}〜${r.hi[0]}%、現場管理費${r.lo[1]}〜${r.hi[1]}%、一般管理費等${r.lo[2]}〜${r.hi[2]}%です。` : ''}工事の規模が小さいほど割合は高くなります。公告・設計書の値が分かれば上書きしてください。`
         : `${EST.kind}の実績はまだ記録がありません。公告や過去の設計書の割合を入れてください。`;
       renderEstTotals();
       estSave();
@@ -1728,7 +1738,7 @@
       $('mGeneral').value = c.gen.toLocaleString('ja-JP');
       const o = estOrg();
       if (o.rule && !FLOOR_RULES[S.rule]?.variable) { S.rule = o.rule; S.ruleManual = true; }
-      $('mKind').value = EST.kind === '建築' ? 'building' : 'general';
+      $('mKind').value = EST.kind === '建築' ? 'building' : EST.kind === '撤去・解体' ? 'demolish' : 'general';
       renderAll();
       $('modelBox').open = true;
       try { $('modelBox').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
