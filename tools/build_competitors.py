@@ -174,6 +174,7 @@ def parse_bidders(lines):
             nm = AMOUNT_LINE.match(lines[i + 1])
             if nm and amount(nm.group(1)) >= 10000:
                 amt = amount(nm.group(1))
+        name_part = re.sub(r'(\s+\d{1,2})+\s*$', '', name_part)  # 社名の後ろの「回数」などの列
         name = clean_name(re.sub(r'[\s　]+', '', name_part).rstrip('円'))
         if not CORP_RE.search(name):
             continue
