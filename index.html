@@ -1364,6 +1364,7 @@
     const COMP = { data: null, loading: null, failed: false };
     function compKindOf(title) {
       const t = String(title || '').normalize('NFKC');
+      if (/改築|新築|増築|トイレ|便所|校舎|庁舎|体育館/.test(t) && !/電気|照明|LED|空調|給排水|衛生|機械設備/.test(t)) return COMP_KINDS.findIndex(k => k[0] === '建築');
       for (let i = 0; i < COMP_KINDS.length; i++) if (COMP_KINDS[i][1].test(t)) return i;
       return COMP_KINDS.length;
     }

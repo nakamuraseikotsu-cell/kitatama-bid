@@ -47,8 +47,14 @@ def nfkc(s):
     return unicodedata.normalize('NFKC', s or '')
 
 
+STRONG_BUILDING = r'改築|新築|増築|トイレ|便所|校舎|庁舎|体育館'
+
+
 def kind_of(title):
     t = nfkc(title)
+    # 公園のトイレ改築・道路沿いの建物など、建物そのものの工事は建築
+    if re.search(STRONG_BUILDING, t) and not re.search(r'電気|照明|LED|空調|給排水|衛生|機械設備', t):
+        return KIND_NAMES.index('建築')
     for name, pat in KINDS:
         if re.search(pat, t):
             return KIND_NAMES.index(name)
