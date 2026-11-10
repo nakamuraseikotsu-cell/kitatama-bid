@@ -1,0 +1,39 @@
+name: 国立市・立川市の入札経過の集計
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '23 21 * * *'   # 毎日 6:23（日本時間）。新しいPDFだけ取りに行く
+  push:
+    branches: [main]
+    paths:
+      - 'tools/fetch_bid_results.py'
+      - 'tools/build_competitors.py'
+      - '.github/workflows/bid-results.yml'
+permissions:
+  contents: write
+concurrency:
+  group: bid-results
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pdfplumber==0.11.4
+      # PDF本体は公開しない：リポジトリには入れず、Actions のキャッシュにだけ置く
+      - uses: actions/cache@v4
+        with:
+          path: data/bids/raw
+          key: bids-raw-${{ github.run_id }}
+          restore-keys: bids-raw-
+      - run: python tools/fetch_bid_results.py
+      - run: python tools/build_competitors.py
+      - name: 変更があればコミット
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/bids/competitors.json data/bids/report.json
+          if git diff --cached --quiet; then echo "変更なし"; else git commit -m "国立市・立川市の入札経過の集計を更新（自動）" && git pull --rebase && git push; fi

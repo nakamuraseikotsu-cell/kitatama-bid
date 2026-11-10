@@ -310,7 +310,17 @@
                 <select id="cRound" onchange="renderAll()" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5 focus:outline-none focus:border-amber-500 bg-white"><option value="1">1円未満切捨て</option><option value="1000">1,000円未満切捨て</option><option value="10000">1万円未満切捨て</option></select></label>
             </div>
           </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3 text-xs">
+          <div id="mVar" class="hidden mt-3 bg-white border-2 border-sky-200 rounded-lg p-2 text-xs space-y-2">
+            <div class="font-bold text-sky-900">🎲 変動型の試算：他社の入札額を想定して、失格ラインがどこになるか確かめる</div>
+            <label class="space-y-1 block"><span class="font-bold text-gray-800">予定価格（円・税抜）</span>
+              <input id="mVarPrice" type="text" inputmode="numeric" placeholder="予定価格を超える札は無効札として除きます" oninput="renderModel()" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5 text-right focus:outline-none focus:border-sky-500 bg-white"></label>
+            <label class="space-y-1 block"><span class="font-bold text-gray-800">他社の想定入札額（円・税抜、1行に1社）</span>
+              <textarea id="mVarBids" rows="4" placeholder="例：&#10;18,200,000&#10;18,650,000&#10;19,100,000" oninput="renderModel()" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5 text-right focus:outline-none focus:border-sky-500 bg-white"></textarea></label>
+            <label class="space-y-1 block"><span class="font-bold text-gray-800">自社の入札額（円・税抜）</span>
+              <input id="mVarMine" type="text" inputmode="numeric" placeholder="自社の札も平均の計算に入ります" oninput="renderModel()" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5 text-right focus:outline-none focus:border-sky-500 bg-white"></label>
+            <div id="mVarHist" class="text-[11px] text-gray-600"></div>
+          </div>
+          <div id="mFields" class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3 text-xs">
             <label class="space-y-1 block"><span class="font-bold text-gray-800">① 直接工事費（円・税抜）</span>
               <input id="mDirect" type="text" inputmode="numeric" placeholder="例：123,456,789" oninput="renderModel()" class="w-full border-2 border-gray-300 rounded-lg px-2 py-1.5 text-right focus:outline-none focus:border-amber-500 bg-white"></label>
             <label class="space-y-1 block"><span class="font-bold text-gray-800">② 共通仮設費（円・税抜）</span>
@@ -786,7 +796,7 @@
       S.cur = S.list[i] || S.list[0];
       S.priceOverride = null;
       $('priceInput').value = S.cur.price ? Math.round(S.cur.price / 10000) : '';
-      ['mDirect', 'mCommon', 'mSite', 'mGeneral', 'mAdj', 'mCost'].forEach(id => { $(id).value = ''; });
+      ['mDirect', 'mCommon', 'mSite', 'mGeneral', 'mAdj', 'mCost', 'mVarPrice', 'mVarBids', 'mVarMine'].forEach(id => { $(id).value = ''; });
       S.ruleManual = false;
       $('ddDate').textContent = S.cur.openDate ? `【開札 ${jpDate(S.cur.openDate)}】` : `【公告 ${jpDate(S.cur.cftDate)}】`;
       $('ddOrg').textContent = S.cur.org + (S.cur.city ? `（${S.cur.city}）` : '');
@@ -858,7 +868,12 @@
       const loP = pctText(rule.lo), hiP = pctText(rule.hi);
       $('rangeHead').textContent = `🎯 最低制限価格の範囲（${rule.short}の場合）`;
       $('safeLineNote').textContent = `予定価格の${hiP}%（${rule.short}の上限）。これ以上の入札なら、内訳に関係なく失格になりません。`;
-      if (price !== null) {
+      if (rule.variable) {
+        $('rangeVal').textContent = '開札後に入札額から決まります';
+        $('rangeSub').textContent = '有効な札が3者以上のとき、安い方から6割の平均の92%（事前には計算できません）';
+        $('safeLineVal').textContent = price !== null ? `${yen(price * rule.hi / 1000)} 以上` : '—';
+        $('safeLineNote').textContent = `予定価格の${hiP}%。どの札も予定価格以下なので、これ以上なら結果に関係なく失格になりません。`;
+      } else if (price !== null) {
         $('rangeVal').textContent = `${yen(price * rule.lo / 1000)} 〜 ${yen(price * rule.hi / 1000)}`;
         $('rangeSub').textContent = `予定価格の${loP}%〜${hiP}%（この範囲で算定式により決まります）`;
         $('safeLineVal').textContent = `${yen(price * rule.hi / 1000)} 以上`;
@@ -901,6 +916,60 @@
         note: '予定価格1,000万円以上の工事が対象。一般管理費等の係数が55%で、合計の1,000円未満を切り捨ててから消費税を掛けます。範囲は予定価格の70%〜90%。',
         src: 'https://www.city.nishitokyo.lg.jp/siseizyoho/keiyaku/kitei.files/20_saitei.pdf'
       },
+      fuchu: {
+        name: '府中市', short: '府中市',
+        coef: [970, 900, 900, 680], lo: 750, hi: 920, round: 1, building: true, demolish: 800,
+        note: '予定価格130万円以上の競争入札（低入札価格調査の案件を除く）。解体工事は直接工事費80%。建築・建築設備工事は直接工事費の1/10（昇降機2/10）を現場管理費に振り替えます。範囲は予定価格の75%〜92%。端数処理は公表資料に書かれていないため、1円未満切捨てで計算しています。',
+        src: 'https://www.city.fuchu.tokyo.jp/jigyosha/keyaku/youkou-kijun/kijunkakaku.html'
+      },
+      chofu: {
+        name: '調布市', short: '調布市',
+        coef: [970, 900, 900, 680], lo: 750, hi: 920, round: 1000, loRound: 1000, hiRound: 1000, building: true, demolish: 800,
+        note: '令和6年10月1日以降の公示案件。合計の1,000円未満を切り捨ててから消費税を加えます。範囲は予定価格（税抜）の75%（1,000円未満切上げ）〜92%（1,000円未満切捨て）。解体工事は直接工事費80%、現場管理費相当額は直接工事費の1/10（昇降機2/10）。',
+        src: 'https://www.city.chofu.lg.jp/documents/3239/20241001kizyunn.pdf'
+      },
+      kodaira: {
+        name: '小平市', short: '小平市',
+        coef: [970, 900, 900, 680], lo: 750, hi: 920, round: 1, building: false, demolish: 0,
+        note: '令和4年11月29日以降の公告案件。範囲は予定価格の75%〜92%。解体工事や建築工事の扱い、端数処理は公表ページに書かれていないため、公告で確認してください（ここでは1円未満切捨てで計算）。',
+        src: 'https://www.city.kodaira.tokyo.jp/kurashi/020/020520.html'
+      },
+      kokubunji: {
+        name: '国分寺市', short: '国分寺市',
+        coef: [970, 900, 900, 680], lo: 750, hi: 920, round: 1, building: false, demolish: 0,
+        note: '予定価格（税込）1,000万円以上の工事が対象。範囲は予定価格の75%〜92%。解体工事や建築工事の扱い、端数処理は基準に書かれていないため、公告で確認してください（ここでは1円未満切捨てで計算）。',
+        src: 'https://www.city.kokubunji.tokyo.jp/_res/projects/default_project/_page_/001/022/887/saitei5.pdf'
+      },
+      higashimurayama: {
+        name: '東村山市', short: '東村山市',
+        coef: [970, 900, 900, 680], lo: 750, hi: 920, round: 100, building: true, demolish: 800,
+        note: '令和8年10月1日以降の発注案件（原則2,000万円以上）。合計の100円未満を切り捨てます。範囲は予定価格の75%〜92%。解体工事は直接工事費80%、建築・建築設備工事は直接工事費の1/10（昇降機2/10）を現場管理費に振り替えます。',
+        src: 'https://www.city.higashimurayama.tokyo.jp/shisei/gyozaisei/keiyaku/files/saiteiseigennkakaku.pdf'
+      },
+      kunitachi: {
+        name: '国立市', short: '国立市',
+        coef: [970, 900, 900, 680], lo: 750, hi: 920, round: 1, building: true, demolish: 0,
+        note: '予定価格1,000万円以上の工事が対象。各費目の1円未満を切り捨てて合計し、消費税を加えます。範囲は予定価格の75%〜92%。現場管理費相当額は直接工事費の1/10（昇降機2/10）。解体工事の特例は基準に書かれていません。',
+        src: 'https://www.city.kunitachi.tokyo.jp/material/files/group/14/R7kaisei-saiteiseigennkakakukijun.pdf'
+      },
+      higashiyamato: {
+        name: '東大和市', short: '東大和市',
+        coef: [970, 900, 900, 680], lo: 750, hi: 920, round: 1000, loRound: 1000, hiRound: 1000, building: true, demolish: 0,
+        note: '令和5年8月1日以降の入札。合計の1,000円未満を切り捨ててから消費税を加えます。範囲は予定価格（税抜）の75%（1,000円未満切上げ）〜92%（1,000円未満切捨て）。現場管理費相当額は直接工事費の1/10（昇降機2/10）。',
+        src: 'https://www.city.higashiyamato.lg.jp/business/nyusatsu/1004040/1004047.html'
+      },
+      higashikurume: {
+        name: '東久留米市', short: '東久留米市',
+        coef: [970, 900, 900, 680], lo: 750, hi: 920, round: 1, building: false, demolish: 0,
+        note: '令和7年4月1日以降、予定価格200万円以上の工事が対象。合計に110/100を掛けて1円未満を切り捨てます。範囲は予定価格の75%〜92%。最低制限価格は公表されません。解体工事や建築工事の扱いは公表ページに書かれていません。',
+        src: 'https://www.city.higashikurume.lg.jp/shisei/jigyosha/nyusatsu/1017927/1004362.html'
+      },
+      tachikawa: {
+        name: '立川市（変動型：開札後に入札額から決まる）', short: '立川市（変動型）', variable: true,
+        coef: [970, 900, 900, 680], lo: 0, hi: 920, round: 1, building: false, demolish: 0,
+        note: '公告に「変動型最低制限価格」とある立川市の工事は、失格ラインが開札後に決まるため、事前に計算できません。予定価格以下の有効な札が3者以上あるとき、安い方から6割（1未満切上げ）の札の平均（1円未満切捨て）の92%（1円未満切捨て）が最低制限価格になります。3者未満なら最低制限価格は設けられません。どの札も予定価格以下なので、予定価格の92%以上で入れれば結果に関係なく失格になりません。',
+        src: 'https://www.city.tachikawa.lg.jp/sangyo/nyusatsu/1003875/1003940.html'
+      },
       custom: {
         name: '自分で設定（公告の算定基準を入れる）', short: '自分で設定した基準',
         building: true, demolish: 0, note: '公告や発注者の算定基準に書かれた係数・範囲・端数処理を入れてください。', src: ''
@@ -921,8 +990,13 @@
     const pctText = permille => String(permille / 10);
 
     function ruleForProject(p) {
-      return p && /西東京市/.test(p.org || '') ? 'nishitokyo' : 'kokeiren';
+      const org = (p && p.org) || '';
+      if (/立川市/.test(org)) return 'tachikawa';
+      if (/西東京市/.test(org)) return 'nishitokyo';
+      for (const k of CITY_RULE_KEYS) if (org.indexOf(FLOOR_RULES[k].short) >= 0) return k;
+      return 'kokeiren';
     }
+    const CITY_RULE_KEYS = ['fuchu', 'chofu', 'kodaira', 'kokubunji', 'higashimurayama', 'kunitachi', 'higashiyamato', 'higashikurume'];
     function currentRule() {
       const r = FLOOR_RULES[S.rule] || FLOOR_RULES.kokeiren;
       if (S.rule !== 'custom') return r;
@@ -952,12 +1026,28 @@
         Math.floor(v.gen * rule.coef[3] / 1000)
       ];
       const raw = parts[0] + parts[1] + parts[2] + parts[3];
-      const lo = Math.ceil(total * rule.lo / 1000), hi = Math.floor(total * rule.hi / 1000);
+      const lr = rule.loRound || 1, hr = rule.hiRound || 1;
+      const lo = Math.ceil(Math.ceil(total * rule.lo / 1000) / lr) * lr, hi = Math.floor(Math.floor(total * rule.hi / 1000) / hr) * hr;
       const clamped = raw < lo ? 'lo' : (raw > hi ? 'hi' : '');
       let net = Math.min(Math.max(raw, lo), hi);
       if (rule.round > 1) net = Math.floor(net / rule.round) * rule.round;
       const gross = Math.floor(net * 110 / 100);
       return { total, parts, raw, lo, hi, net, gross, clamped, adj, isBld, cd, dirUsed: dir, siteUsed: site };
+    }
+
+    // 変動型（立川市）：有効札（予定価格以下）が3者以上のとき、安い方から6割の平均×92%
+    function varFloorCalc(bids, price, rate) {
+      rate = rate || 920;
+      const valid = bids.filter(b => b > 0 && (!price || b <= price)).sort((a, b) => a - b);
+      const n = valid.length;
+      if (n < 3) return { n, valid, k: 0, avg: 0, floor: 0, none: true };
+      const k = Math.ceil(n * 6 / 10);
+      const sum = valid.slice(0, k).reduce((a, b) => a + b, 0);
+      const avg = Math.floor(sum / k);
+      return { n, valid, k, avg, floor: Math.floor(avg * rate / 1000), none: false };
+    }
+    function parseYenList(t) {
+      return String(t || '').split(/[\n\r\t 　、;；]+/).map(parseYen).filter(n => n > 0);
     }
 
     function onRuleChange() {
@@ -981,9 +1071,12 @@
       const rule = currentRule();
       const kind = $('mKind').value;
       $('mCustom').classList.toggle('hidden', S.rule !== 'custom');
-      $('mAdjRow').classList.toggle('hidden', !(rule.building && (kind === 'building' || kind === 'elevator')));
+      $('mVar').classList.toggle('hidden', !rule.variable);
+      $('mFields').classList.toggle('hidden', !!rule.variable);
+      $('mAdjRow').classList.toggle('hidden', !!rule.variable || !(rule.building && (kind === 'building' || kind === 'elevator')));
       $('mRuleNote').innerHTML = esc(rule.note) + (safeUrl(rule.src) ? ` <a href="${esc(rule.src)}" target="_blank" rel="noopener noreferrer" class="underline text-amber-800 whitespace-nowrap">算定基準（公式）↗</a>` : '');
 
+      if (rule.variable) { renderVarModel(rule); return; }
       const v = { dir: parseYen($('mDirect').value), com: parseYen($('mCommon').value), site: parseYen($('mSite').value), gen: parseYen($('mGeneral').value), kind, adj: parseYen($('mAdj').value) };
       const el = $('modelResult'), pr = $('profitResult');
       const r = floorCalc(rule, v);
@@ -1033,6 +1126,51 @@
         ? `<div class="mt-1 text-rose-700 font-bold">原価が失格ラインを上回っています。失格ラインぎりぎりで取ると赤字です。</div>`
         : '';
       pr.innerHTML = `<div class="bg-white border border-gray-200 rounded-lg p-2 space-y-1">${row('失格ラインで落札', r.net)}${row('予定価格で落札', r.total)}${warn}</div>`;
+    }
+
+    function renderVarModel(rule) {
+      const el = $('modelResult'), pr = $('profitResult');
+      const price = parseYen($('mVarPrice').value);
+      const others = parseYenList($('mVarBids').value);
+      const mine = parseYen($('mVarMine').value);
+      const hist = (typeof varFloorHistory === 'function') ? varFloorHistory(S.city) : '';
+      $('mVarHist').innerHTML = hist;
+      const r = varFloorCalc(mine ? others.concat([mine]) : others, price, rule.hi);
+      const safe = price ? `<div class="text-[11px] text-gray-700 mt-1">どんな札の組み合わせでも、<strong>${yen(Math.floor(price * rule.hi / 1000))}（予定価格の${pctText(rule.hi)}%）以上</strong>なら失格になりません。</div>` : '';
+      if (!others.length && !mine) {
+        el.innerHTML = `<div class="bg-white border-2 border-sky-300 rounded-xl p-3 text-xs text-gray-700"><div class="font-extrabold text-sky-900">この工事の失格ラインは、開札後に入札額から決まります</div><div class="mt-1">上の欄に他社の想定入札額を入れると、失格ラインがどこになりそうか試算できます。</div>${safe}</div>`;
+        pr.innerHTML = '';
+        return;
+      }
+      if (r.none) {
+        el.innerHTML = `<div class="bg-white border-2 border-sky-300 rounded-xl p-3 text-xs"><div class="font-extrabold text-sky-900">有効な札が${r.n}者のため、最低制限価格は設けられません</div><div class="text-gray-700 mt-1">予定価格以下の札が3者以上になると、失格ラインが決まります。</div>${safe}</div>`;
+        pr.innerHTML = '';
+        return;
+      }
+      let mineNote = '';
+      if (mine) {
+        if (price && mine > price) mineNote = `<div class="mt-1 font-bold text-rose-700">自社の札は予定価格を超えているため無効です。</div>`;
+        else if (mine < r.floor) mineNote = `<div class="mt-1 font-bold text-rose-700">自社の札（${yen(mine)}）は失格ラインを ${yen(r.floor - mine)} 下回り、失格になります。</div>`;
+        else {
+          const lower = r.valid.filter(b => b >= r.floor && b < mine).length;
+          mineNote = lower === 0
+            ? `<div class="mt-1 font-bold text-emerald-700">自社の札（${yen(mine)}）は失格ラインより ${yen(mine - r.floor)} 上で、この想定なら最も安い有効札（落札予定者）です。</div>`
+            : `<div class="mt-1 font-bold text-amber-700">自社の札（${yen(mine)}）は失格になりませんが、失格ライン以上でより安い札が${lower}者あります。</div>`;
+        }
+      }
+      const pct = price ? `（予定価格の${(r.floor / price * 100).toFixed(2)}%）` : '';
+      el.innerHTML = `
+        <div class="bg-white border-2 border-rose-300 rounded-xl p-3">
+          <div class="text-xs font-extrabold text-rose-800">🚫 この想定での失格ライン（${esc(rule.short)}）</div>
+          <div class="text-2xl md:text-3xl font-extrabold text-rose-700 mt-0.5">${yen(r.floor)} <span class="text-sm font-bold text-gray-700">（税抜）</span></div>
+          <div class="text-xs text-gray-700 mt-0.5">有効な札${r.n}者のうち安い方から${r.k}者の平均 ${yen(r.avg)} × ${pctText(rule.hi)}%${pct}</div>
+          ${mineNote}${safe}
+          <div class="text-[11px] text-gray-500 mt-1">他社の実際の札しだいで失格ラインは上下します。あくまで想定にもとづく試算です。</div>
+        </div>`;
+      const cost = parseYen($('mCost').value);
+      if (!cost) { pr.innerHTML = ''; return; }
+      const gain = r.floor - cost;
+      pr.innerHTML = `<div class="bg-white border border-gray-200 rounded-lg p-2"><div class="flex flex-wrap justify-between gap-2"><span>この想定の失格ラインで落札（${yen(r.floor)}）</span><span class="font-bold ${gain >= 0 ? 'text-emerald-700' : 'text-rose-700'}">${gain >= 0 ? '利益' : '赤字'} ${yen(Math.abs(gain))}（${(gain / r.floor * 100).toFixed(1)}%）</span></div></div>`;
     }
 
     // ===== STEP 2 =====
