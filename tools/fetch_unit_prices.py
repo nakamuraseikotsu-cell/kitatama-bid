@@ -52,9 +52,8 @@ def main():
     json.dump(manifest, open(manifest_path, 'w', encoding='utf-8'), ensure_ascii=False, indent=1, sort_keys=True)
 
 # Excel版のない過去の労務単価（昨年度との比較用）。財務局の公表PDF。
-PDF_EXTRA = {
-    'labor-2025-03.pdf': 'https://www.zaimu.metro.tokyo.lg.jp/documents/d/zaimu/7roumur7',   # 公共工事設計労務単価〔令和7年3月〕
-}
+# 都のサイトから消えた版を入手できたときに、ここへURLを足す（2026/11時点で令和7年度版は公開終了）。
+PDF_EXTRA = {}
 
 def fetch_pdfs():
     for fn, url in PDF_EXTRA.items():

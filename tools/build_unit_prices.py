@@ -84,9 +84,7 @@ def parse_labor_sheet(ws):
                         'price': p, 'priceText': '' if p is not None else norm(v), 'note': '', 'cat': cat})
     return out
 
-LABOR_PDFS = [   # (ファイル, 版の日付, 版の名前, 公表URL)
-    ('labor-2025-03.pdf', '2025-03-01', '公共工事設計労務単価〔令和7年3月〕', 'https://www.zaimu.metro.tokyo.lg.jp/documents/d/zaimu/7roumur7'),
-]
+LABOR_PDFS = []   # (ファイル, 版の日付, 版の名前, 公表URL)。過去の労務単価のPDFを入手できたら足す
 
 def parse_labor_pdf(path):
     try:
