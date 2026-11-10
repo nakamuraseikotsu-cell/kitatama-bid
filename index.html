@@ -1377,7 +1377,9 @@
       if (COMP.data) return Promise.resolve(COMP.data);
       if (COMP.loading) return COMP.loading;
       if (typeof window.fetch !== 'function') { COMP.failed = true; return Promise.resolve(null); }
-      COMP.loading = window.fetch(COMP_URL, { credentials: 'omit', cache: 'no-cache' })
+      let req;
+      try { req = window.fetch(COMP_URL, { credentials: 'omit', cache: 'no-cache' }); } catch (e) { req = Promise.reject(e); }
+      COMP.loading = req
         .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
         .then(d => { COMP.data = d; COMP.failed = false; renderComp(); if (S.rule === 'tachikawa') renderModel(); return d; })
         .catch(e => { COMP.loading = null; COMP.failed = true; renderComp(); });
