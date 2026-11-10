@@ -1,0 +1,26 @@
+{
+ "2026-05-01.xlsx": {
+  "bytes": 662919,
+  "fetchedAt": "2026-11-10T04:51:39Z",
+  "issued": "2026-05-01",
+  "name": "【公表用】令和８年度東京都工事設計単価表（令和８年５月１日発行）.xlsx",
+  "sha256": "df5eb8870b79c2e48e20b272162d53c633286df4cb89caaeafdca73033550a02",
+  "url": "https://www.zaimu.metro.tokyo.lg.jp/documents/d/zaimu/2026-04-24-163654-946"
+ },
+ "2026-10-01.xlsx": {
+  "bytes": 72221,
+  "fetchedAt": "2026-11-10T04:51:39Z",
+  "issued": "2026-10-01",
+  "name": "【公表用】令和８年度東京都工事設計単価表（令和８年１０月１日発行）.xlsx",
+  "sha256": "2ff7ddb5cba92ffa9ab58a3ca7ca8a61050323a48aed1000768e33bb9583072e",
+  "url": "https://www.zaimu.metro.tokyo.lg.jp/documents/d/zaimu/-30"
+ },
+ "2026-11-01.xlsx": {
+  "bytes": 300279,
+  "fetchedAt": "2026-11-10T04:51:40Z",
+  "issued": "2026-11-01",
+  "name": "【公表用】令和８年度東京都工事設計単価表（令和８年１１月１日発行）.xlsx",
+  "sha256": "4218de4a153b70130230ab6f5b7dc6a0df6d4af573021a370448aa963f093c22",
+  "url": "https://www.zaimu.metro.tokyo.lg.jp/documents/d/zaimu/2026-10-28-091704-764"
+ }
+}
