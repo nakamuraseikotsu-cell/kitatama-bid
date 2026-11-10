@@ -1551,13 +1551,13 @@
     // 工種ごとの共通費の割合（東京都の設計書142件を閲覧して記録した実績の中央値と範囲）
     const EST_RATES = {
       '建築': { n: 3, r1: 8.51, r2: 8.66, r3: 10.46, lo: [4.3, 8.3, 9.0], hi: [12.8, 14.4, 13.1], dmin: 90562009, dmax: 1674768403 },
-      '電気設備': { n: 22, r1: 16.15, r2: 58.37, r3: 19.24, lo: [2.5, 9.1, 6.4], hi: [23.5, 67.8, 20.8], dmin: 9482401, dmax: 1932374894 },
-      '機械設備': { n: 7, r1: 4.11, r2: 14.74, r3: 10.77, lo: [1.5, 12.4, 9.9], hi: [5.4, 33.7, 15.3], dmin: 6178061, dmax: 429313944 },
-      '土木': { n: 24, r1: 18.64, r2: 44.54, r3: 17.77, lo: [10.6, 20.9, 13.7], hi: [69.3, 79.4, 23.0], dmin: 4939938, dmax: 290962278 },
-      '舗装': { n: 43, r1: 15.42, r2: 38.09, r3: 17.13, lo: [11.5, 28.2, 13.5], hi: [30.3, 81.0, 22.1], dmin: 3528300, dmax: 335121779 },
-      '交通安全施設': { n: 9, r1: 19.52, r2: 66.8, r3: 21.01, lo: [13.7, 54.7, 19.1], hi: [26.7, 79.8, 22.1], dmin: 4678611, dmax: 27233697 },
-      '橋梁補修・塗装': { n: 14, r1: 34.46, r2: 68.64, r3: 17.87, lo: [21.1, 47.2, 14.8], hi: [59.6, 99.9, 22.4], dmin: 3841794, dmax: 164472790 },
-      '河川': { n: 15, r1: 23.15, r2: 36.08, r3: 15.79, lo: [8.3, 27.4, 14.0], hi: [47.9, 191.1, 25.1], dmin: 3800082, dmax: 167090598 },
+      '電気設備': { n: 22, r1: 16.15, r2: 58.37, r3: 19.24, lo: [2.5, 9.1, 6.4], hi: [23.5, 67.8, 20.8], dmin: 9482401, dmax: 1932374894, fit: [[9.4454, -0.4146], [11.1175, -0.432], [5.7626, -0.1751]] },
+      '機械設備': { n: 7, r1: 4.11, r2: 14.74, r3: 10.77, lo: [1.5, 12.4, 9.9], hi: [5.4, 33.7, 15.3], dmin: 6178061, dmax: 429313944, fit: [[-0.1072, 0.0785], [5.8857, -0.1652], [3.9406, -0.0825]] },
+      '土木': { n: 24, r1: 18.64, r2: 44.54, r3: 17.77, lo: [10.6, 20.9, 13.7], hi: [69.3, 79.4, 23.0], dmin: 4939938, dmax: 290962278, fit: [[7.0396, -0.2329], [6.002, -0.1284], [4.4734, -0.0932]] },
+      '舗装': { n: 43, r1: 15.42, r2: 38.09, r3: 17.13, lo: [11.5, 28.2, 13.5], hi: [30.3, 81.0, 22.1], dmin: 3528300, dmax: 335121779, fit: [[6.444, -0.2068], [7.6138, -0.2201], [4.9227, -0.116]] },
+      '交通安全施設': { n: 9, r1: 19.52, r2: 66.8, r3: 21.01, lo: [13.7, 54.7, 19.1], hi: [26.7, 79.8, 22.1], dmin: 4678611, dmax: 27233697, fit: [[8.9785, -0.3714], [7.441, -0.2013], [4.1731, -0.0696]] },
+      '橋梁補修・塗装': { n: 14, r1: 34.46, r2: 68.64, r3: 17.87, lo: [21.1, 47.2, 14.8], hi: [59.6, 99.9, 22.4], dmin: 3841794, dmax: 164472790, fit: [[7.0483, -0.2007], [7.3477, -0.1831], [4.6389, -0.1012]] },
+      '河川': { n: 15, r1: 23.15, r2: 36.08, r3: 15.79, lo: [8.3, 27.4, 14.0], hi: [47.9, 191.1, 25.1], dmin: 3800082, dmax: 167090598, fit: [[6.2154, -0.1758], [9.9313, -0.3493], [5.423, -0.1459]] },
       '公園・造園': { n: 2, r1: 17.95, r2: 61.22, r3: 19.89, lo: [15.4, 55.8, 18.9], hi: [20.5, 66.6, 20.9], dmin: 7963794, dmax: 22246448 },
       '撤去・解体': { n: 3, r1: 29.23, r2: 58.83, r3: 17.36, lo: [29.1, 52.9, 15.7], hi: [53.5, 62.2, 18.1], dmin: 33236765, dmax: 87411192 },
       '下水道': null,
@@ -1711,6 +1711,20 @@
       renderEstTotals();
       estSave();
     }
+    // 規模に合わせた目安：実績から求めた「割合 = exp(a + b × ln(直接工事費))」。実績の幅の中に収める
+    function estFitRates(kind, dir) {
+      const r = EST_RATES[kind];
+      if (!r || !r.fit || !dir) return null;
+      const lnd = Math.log(dir);
+      return r.fit.map((f, i) => Math.min(r.hi[i], Math.max(r.lo[i], Math.round(Math.exp(f[0] + f[1] * lnd) * 100) / 100)));
+    }
+    function estApplyFit() {
+      const f = estFitRates(EST.kind, estDirect());
+      if (!f) return;
+      $('eR1').value = f[0]; $('eR2').value = f[1]; $('eR3').value = f[2];
+      renderEstTotals();
+      estSave();
+    }
     function renderEstTotals() {
       EST.items.forEach((x, i) => { const c = document.querySelector(`[data-amt="${i}"]`); if (c) c.textContent = yen(Math.floor(numOf(x.price) * numOf(x.qty))); });
       const dir = estDirect();
@@ -1719,8 +1733,10 @@
       const gen = Math.floor((dir + com + site) * r3 / 100);
       const total = dir + com + site + gen;
       EST.calc = { dir, com, site, gen, total };
+      const fr = estFitRates(EST.kind, dir);
+      const fitHtml = fr ? `<div class="text-[11px] text-violet-900 bg-white border border-violet-200 rounded-lg p-2 mb-1">この規模（直接工事費${yen(dir)}）の${esc(EST.kind)}なら、実績${EST_RATES[EST.kind].n}件から見た目安は 共通仮設費${fr[0]}%・現場管理費${fr[1]}%・一般管理費等${fr[2]}% です。 <button type="button" onclick="estApplyFit()" class="font-bold underline">目安を入れる</button></div>` : '';
       $('eTotal').innerHTML = dir
-        ? `<div class="bg-violet-50 border border-violet-200 rounded-lg p-2 space-y-0.5">
+        ? fitHtml + `<div class="bg-violet-50 border border-violet-200 rounded-lg p-2 space-y-0.5">
             <div class="flex justify-between"><span>直接工事費</span><span class="font-bold">${yen(dir)}</span></div>
             <div class="flex justify-between"><span>共通仮設費</span><span>${yen(com)}</span></div>
             <div class="flex justify-between"><span>現場管理費</span><span>${yen(site)}</span></div>
