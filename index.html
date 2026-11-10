@@ -227,6 +227,19 @@
         <p class="text-[11px] text-gray-500 leading-relaxed">件数は、東京都電子調達システム（入札情報サービス）の発注予定情報を毎朝数えたものです（設計・測量・地質調査は含みません）。リンク先は東京都の公式サイトです。</p>
       </div>
 
+      <!-- 単価を調べる：東京都工事設計単価表（東京都オープンデータ・CC BY）を毎朝取り込んで検索 -->
+      <details id="priceBook" ontoggle="if (this.open) loadPriceBook()" class="bg-white border-2 border-teal-300 rounded-xl p-4 md:p-5 shadow-sm">
+        <summary class="font-extrabold text-gray-900 cursor-pointer text-sm md:text-base">📚 単価を調べる（東京都工事設計単価表・改定ごとの推移つき）</summary>
+        <p class="text-xs text-gray-600 mt-2 leading-relaxed">東京都が予定価格の積算に使っている公式の単価（材料・労務）です。品名や規格で検索すると、最新の単価と、改定でどれだけ変わったかが分かります。</p>
+        <div class="flex flex-col sm:flex-row gap-2 mt-3">
+          <input id="pbQuery" type="search" enterkeyhint="search" placeholder="例：生コン　／　ダクタイル 150　／　とび工" oninput="searchPriceBook()" class="flex-1 border-2 border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-600 bg-white">
+          <select id="pbCat" onchange="searchPriceBook()" class="border-2 border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-600 bg-white"><option value="">すべての区分</option></select>
+        </div>
+        <div id="pbStatus" class="text-[11px] text-gray-600 mt-2"></div>
+        <div id="pbResults" class="mt-2 space-y-1.5"></div>
+        <p id="pbSource" class="text-[11px] text-gray-500 mt-3 leading-relaxed"></p>
+      </details>
+
       <!-- 公式の入札ページ（この一覧にない案件の確認用） -->
       <details id="linkBox" class="bg-white border-2 border-slate-200 rounded-xl p-4 text-sm">
         <summary class="font-bold text-gray-900 cursor-pointer">📎 東京都・各市の工事は、公式の入札ページで確認（リンク集）</summary>
@@ -270,6 +283,7 @@
         <!-- 失格ライン（最低制限価格）計算：発注者ごとの算定式・端数処理で円単位に出す -->
         <details id="modelBox" open class="bg-amber-50 border-2 border-amber-300 rounded-xl p-3 md:p-4">
           <summary class="text-sm md:text-base font-extrabold text-amber-900 cursor-pointer">🧮 失格ライン（最低制限価格）を円単位で計算する</summary>
+          <button type="button" onclick="openPriceBook()" class="mt-2 text-xs font-bold text-teal-800 underline">📚 東京都の公式単価（材料・労務）を調べる</button>
           <p class="text-[11px] md:text-xs text-gray-700 mt-2 leading-relaxed">設計書の「工事費総括表（総括書）」にある4つの費目を入れると、発注者の計算式どおりに失格ラインを出します。落札は失格ラインの数万円上で決まることが多いので、<strong>円単位</strong>で入れてください（カンマ付きの貼り付けもできます）。</p>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3 text-xs">
             <label class="space-y-1 block"><span class="font-bold text-gray-800">発注者の計算ルール</span>
@@ -1149,6 +1163,85 @@
           partnerConsent: activePartners().length > 0 && $('inPartner').checked,
           projectTitle: S.cur ? S.cur.title : ''
         });
+    }
+
+    // ===== 単価を調べる（東京都工事設計単価表） =====
+    const PRICE_BOOK_URL = 'https://nyusatsu.ma-ko-to-jp.com/data/unit_prices/unit_prices.json';
+    const PB = { data: null, loading: null, text: null, names: null };
+    function loadPriceBook() {
+      if (PB.data) return Promise.resolve(PB.data);
+      if (PB.loading) return PB.loading;
+      $('pbStatus').textContent = '単価表を読み込んでいます…';
+      PB.loading = window.fetch(PRICE_BOOK_URL, { credentials: 'omit' })
+        .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .then(d => {
+          PB.data = d;
+          PB.names = d.items.map(it => String(it[1]).normalize('NFKC').toLowerCase());
+          PB.text = d.items.map((it, i) => PB.names[i] + ' ' + String(it[2] + ' ' + it[3] + ' ' + it[5]).normalize('NFKC').toLowerCase());
+          $('pbCat').innerHTML = '<option value="">すべての区分</option>' + d.categories.map((c, i) => `<option value="${i}">${esc(c)}</option>`).join('');
+          const vs = d.versions.map(v => jpDate(v.issued)).join('・');
+          $('pbSource').innerHTML = `出典：<a href="${esc(safeUrl(d.sourceUrl))}" target="_blank" rel="noopener noreferrer" class="underline">${esc(d.source)}</a>。収録：${esc(vs)}の発行分（${d.items.length.toLocaleString('ja-JP')}品目）。${esc(d.note)}毎朝、都の公表ページを確認し、改定があれば自動で取り込みます。`;
+          searchPriceBook();
+          return d;
+        })
+        .catch(e => {
+          PB.loading = null;
+          $('pbStatus').textContent = '単価表を読み込めませんでした。通信の良いところで、もう一度開いてください。';
+          throw e;
+        });
+      return PB.loading;
+    }
+    function openPriceBook() {
+      $('priceBook').open = true;
+      loadPriceBook().catch(() => {});
+      try { $('priceBook').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+    }
+    function searchPriceBook() {
+      const d = PB.data;
+      if (!d) return;
+      const terms = ($('pbQuery').value || '').normalize('NFKC').toLowerCase().split(/\s+/).filter(Boolean);
+      const cat = $('pbCat').value;
+      if (!terms.length) {
+        $('pbStatus').textContent = `${d.items.length.toLocaleString('ja-JP')}品目から検索できます。品名や規格（数字だけでも可）を入れてください。`;
+        $('pbResults').innerHTML = '';
+        return;
+      }
+      const hits = [];
+      for (let i = 0; i < d.items.length; i++) {
+        if (cat !== '' && String(d.items[i][0]) !== cat) continue;
+        if (terms.every(t => PB.text[i].indexOf(t) >= 0)) hits.push(i);
+      }
+      const score = i => (PB.names[i].indexOf(terms[0]) === 0 ? 4 : 0) + (terms.every(t => PB.names[i].indexOf(t) >= 0) ? 2 : 0) - PB.names[i].length / 200;
+      hits.sort((a, b) => score(b) - score(a) || a - b);
+      const shown = hits.slice(0, 50);
+      $('pbStatus').textContent = hits.length
+        ? `${hits.length.toLocaleString('ja-JP')}件見つかりました${hits.length > 50 ? '（上位50件を表示。語を足すと絞り込めます）' : ''}`
+        : '見つかりませんでした。別の言い方や、規格の数字だけでも試してください（市販の物価資料に載っている資材は、都の単価表にはありません）。';
+      $('pbResults').innerHTML = shown.map(i => priceRowHtml(d, d.items[i])).join('');
+    }
+    const fmtNum = n => Number(n).toLocaleString('ja-JP', { maximumFractionDigits: 2 });
+    function priceRowHtml(d, it) {
+      const ci = it[0], name = it[1], spec = it[2], unit = it[3], hist = it[4], note = it[5];
+      const last = hist[hist.length - 1];
+      const lastV = d.versions[last[0]] || { issued: '' };
+      const nums = hist.filter(h => typeof h[1] === 'number');
+      let change = '';
+      if (nums.length >= 2 && nums[0][1] !== nums[nums.length - 1][1]) {
+        const a = nums[0][1], b = nums[nums.length - 1][1];
+        const pct = (b - a) / a * 100;
+        change = `<span class="${b > a ? 'text-rose-700' : 'text-emerald-700'} font-bold">${b > a ? '↑ +' : '↓ '}${pct.toFixed(1)}%</span>（${esc(jpDate(d.versions[nums[0][0]].issued))}は ${fmtNum(a)}円）`;
+      } else if (nums.length >= 2) {
+        change = `<span class="text-gray-500">${esc(jpDate(d.versions[nums[0][0]].issued))}から変わらず</span>`;
+      }
+      const val = typeof last[1] === 'number' ? `${fmtNum(last[1])}円` : '価格設定なし';
+      return `<div class="border border-gray-200 rounded-lg p-2 text-xs">
+          <div class="flex flex-wrap justify-between gap-x-3 gap-y-0.5">
+            <div class="min-w-0"><span class="text-[10px] text-teal-900 bg-teal-50 border border-teal-200 rounded px-1 mr-1 whitespace-nowrap">${esc(d.categories[ci])}</span><span class="font-bold text-gray-900">${esc(name)}</span> <span class="text-gray-600">${esc(spec)}</span></div>
+            <div class="text-right whitespace-nowrap"><span class="font-extrabold text-gray-900 text-sm">${val}</span><span class="text-gray-600">／${esc(unit)}</span></div>
+          </div>
+          <div class="text-[11px] text-gray-600 mt-0.5">${esc(jpDate(lastV.issued))}発行${change ? '　' + change : ''}</div>
+          ${note ? `<div class="text-[11px] text-gray-500 mt-0.5">${esc(note)}</div>` : ''}
+        </div>`;
     }
 
     // ===== 東京都の発注予定（件数だけ） =====

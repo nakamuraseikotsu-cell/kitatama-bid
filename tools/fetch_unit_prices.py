@@ -51,5 +51,23 @@ def main():
         print('saved', fn, len(body), name)
     json.dump(manifest, open(manifest_path, 'w', encoding='utf-8'), ensure_ascii=False, indent=1, sort_keys=True)
 
+# Excel版のない過去の労務単価（昨年度との比較用）。財務局の公表PDF。
+PDF_EXTRA = {
+    'labor-2025-03.pdf': 'https://www.zaimu.metro.tokyo.lg.jp/documents/d/zaimu/7roumur7',   # 公共工事設計労務単価〔令和7年3月〕
+}
+
+def fetch_pdfs():
+    for fn, url in PDF_EXTRA.items():
+        path = os.path.join(OUT, fn)
+        if os.path.exists(path):
+            continue
+        try:
+            body, _ = get(url)
+        except Exception as e:
+            print('pdf fail', url, e); continue
+        if body[:4] == b'%PDF':
+            open(path, 'wb').write(body); print('saved', fn, len(body))
+
 if __name__ == '__main__':
     main()
+    fetch_pdfs()

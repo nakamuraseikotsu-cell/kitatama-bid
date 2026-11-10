@@ -7,3 +7,8 @@
 - 運営：株式会社誠
 
 `index.html` は Apps Script 側の `index.html` と同じファイルです。GitHub Pages で開いたときは、Cookie を送らずに Apps Script へ問い合わせるため、見る人の Google のログイン状態に左右されません。
+
+## 単価データについて
+`data/unit_prices/` には、東京都財務局「東京都工事設計単価表」（東京都オープンデータカタログ、CC BY）を取り込んだデータがあります。
+GitHub Actions（`.github/workflows/unit-prices.yml`）が毎朝、財務局の公表ページを確認し、改定があればExcel版を取り込んで `unit_prices.json` を作り直します。
+出典：東京都財務局「東京都工事設計単価表」 https://www.zaimu.metro.tokyo.lg.jp/kenchiku/eizen/eizen-tanka （CC BY）
