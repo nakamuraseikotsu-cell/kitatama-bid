@@ -1,0 +1,74 @@
+{
+ "国立市": {
+  "pdfs": 87,
+  "cases": 79,
+  "withBidders": 41,
+  "withPrice": 66,
+  "withDate": 79,
+  "construction": 79,
+  "unreadable": [
+   "https://www.city.kunitachi.tokyo.jp/material/files/group/14/8-125koji.pdf",
+   "https://www.city.kunitachi.tokyo.jp/material/files/group/14/8-121koji.pdf",
+   "https://www.city.kunitachi.tokyo.jp/material/files/group/14/7-158koji.pdf",
+   "https://www.city.kunitachi.tokyo.jp/material/files/group/14/R7-121koji.pdf",
+   "https://www.city.kunitachi.tokyo.jp/material/files/group/14/R7-118koji.pdf",
+   "https://www.city.kunitachi.tokyo.jp/material/files/group/14/R7-117koji.pdf",
+   "https://www.city.kunitachi.tokyo.jp/material/files/group/14/R7-115koji.pdf",
+   "https://www.city.kunitachi.tokyo.jp/material/files/group/14/R7-105koji.pdf"
+  ],
+  "noBidders": [
+   "https://www.city.kunitachi.tokyo.jp/material/files/group/14/8-127koji.pdf",
+   "https://www.city.kunitachi.tokyo.jp/material/files/group/14/8-126koji.pdf",
+   "https://www.city.kunitachi.tokyo.jp/material/files/group/14/8-123koji.pdf",
+   "https://www.city.kunitachi.tokyo.jp/material/files/group/14/8-120koji.pdf",
+   "https://www.city.kunitachi.tokyo.jp/material/files/group/14/8-119koji.pdf",
+   "https://www.city.kunitachi.tokyo.jp/material/files/group/14/8-116koji.pdf",
+   "https://www.city.kunitachi.tokyo.jp/material/files/group/14/8-114koji.pdf",
+   "https://www.city.kunitachi.tokyo.jp/material/files/group/14/8-113koji.pdf",
+   "https://www.city.kunitachi.tokyo.jp/material/files/group/14/8-111koji.pdf",
+   "https://www.city.kunitachi.tokyo.jp/material/files/group/14/8-109koji.pdf",
+   "https://www.city.kunitachi.tokyo.jp/material/files/group/14/8-95koji.pdf",
+   "https://www.city.kunitachi.tokyo.jp/material/files/group/14/8-94koji.pdf",
+   "https://www.city.kunitachi.tokyo.jp/material/files/group/14/8-93koji.pdf",
+   "https://www.city.kunitachi.tokyo.jp/material/files/group/14/8-91koji.pdf",
+   "https://www.city.kunitachi.tokyo.jp/material/files/group/14/8-90koji.pdf"
+  ],
+  "used": 4,
+  "companies": null
+ },
+ "立川市": {
+  "pdfs": 48,
+  "cases": 320,
+  "withBidders": 111,
+  "withPrice": 152,
+  "withDate": 152,
+  "construction": 145,
+  "unreadable": [],
+  "noBidders": [
+   "https://www.city.tachikawa.lg.jp/_res/projects/default_project/_page_/001/028/566/1021koujikeiikekka.pdf",
+   "https://www.city.tachikawa.lg.jp/_res/projects/default_project/_page_/001/028/526/1007koujikeiikekka.pdf",
+   "https://www.city.tachikawa.lg.jp/_res/projects/default_project/_page_/001/028/526/1007koujikeiikekka.pdf",
+   "https://www.city.tachikawa.lg.jp/_res/projects/default_project/_page_/001/028/526/1007koujikeiikekka.pdf",
+   "https://www.city.tachikawa.lg.jp/_res/projects/default_project/_page_/001/028/526/1007koujikeiikekka.pdf",
+   "https://www.city.tachikawa.lg.jp/_res/projects/default_project/_page_/001/028/526/1007koujikeiikekka.pdf",
+   "https://www.city.tachikawa.lg.jp/_res/projects/default_project/_page_/001/028/526/1007koujikeiikekka.pdf",
+   "https://www.city.tachikawa.lg.jp/_res/projects/default_project/_page_/001/028/526/1007koujikeiikekka.pdf",
+   "https://www.city.tachikawa.lg.jp/_res/projects/default_project/_page_/001/028/458/0930koujikeiikekka.pdf",
+   "https://www.city.tachikawa.lg.jp/_res/projects/default_project/_page_/001/028/458/0930koujikeiikekka.pdf",
+   "https://www.city.tachikawa.lg.jp/_res/projects/default_project/_page_/001/028/330/0909koujikeiikekka.pdf",
+   "https://www.city.tachikawa.lg.jp/_res/projects/default_project/_page_/001/028/330/0909koujikeiikekka.pdf",
+   "https://www.city.tachikawa.lg.jp/_res/projects/default_project/_page_/001/028/295/0902koujikeiikekka.pdf",
+   "https://www.city.tachikawa.lg.jp/_res/projects/default_project/_page_/001/028/295/0902koujikeiikekka.pdf",
+   "https://www.city.tachikawa.lg.jp/_res/projects/default_project/_page_/001/028/295/0902koujikeiikekka.pdf"
+  ],
+  "used": 0,
+  "companies": null
+ },
+ "_companies": 4,
+ "_kinds": {
+  "国立市|電気": 1,
+  "国立市|空調・給排水": 1,
+  "国立市|土木": 1,
+  "国立市|建築": 1
+ }
+}
