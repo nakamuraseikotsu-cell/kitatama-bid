@@ -1017,7 +1017,7 @@
       };
       const warn = cost > r.net
         ? `<div class="mt-1 text-rose-700 font-bold">原価が失格ラインを上回っています。失格ラインぎりぎりで取ると赤字です。</div>`
-        : `<div class="mt-1 text-gray-700">失格ラインと原価の差（利益の上限まで値下げできる幅）：<strong>${yen(r.net - cost)}</strong></div>`;
+        : '';
       pr.innerHTML = `<div class="bg-white border border-gray-200 rounded-lg p-2 space-y-1">${row('失格ラインで落札', r.net)}${row('予定価格で落札', r.total)}${warn}</div>`;
     }
 
