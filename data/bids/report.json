@@ -58,10 +58,10 @@
    "https://www.city.tachikawa.lg.jp/_res/projects/default_project/_page_/001/027/995/8junnbikoujiitakuitakuitiran.pdf",
    "https://www.city.tachikawa.lg.jp/_res/projects/default_project/_page_/001/027/995/8junnbikoujiitakuitakuitiran.pdf"
   ],
-  "used": 63,
+  "used": 62,
   "companies": null
  },
- "_companies": 123,
+ "_companies": 117,
  "_kinds": {
   "国立市|建築": 13,
   "国立市|舗装・道路": 4,
@@ -71,7 +71,7 @@
   "国立市|その他": 3,
   "国立市|空調・給排水": 4,
   "立川市|建築": 15,
-  "立川市|その他": 7,
+  "立川市|その他": 6,
   "立川市|舗装・道路": 10,
   "立川市|空調・給排水": 7,
   "立川市|下水道": 5,
