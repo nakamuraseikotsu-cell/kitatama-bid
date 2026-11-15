@@ -30,7 +30,7 @@
    "https://www.city.kunitachi.tokyo.jp/material/files/group/14/R7-109koji.pdf",
    "https://www.city.kunitachi.tokyo.jp/material/files/group/14/R7-107koji.pdf"
   ],
-  "used": 35,
+  "used": 34,
   "companies": null
  },
  "立川市": {
@@ -61,9 +61,9 @@
   "used": 62,
   "companies": null
  },
- "_companies": 116,
+ "_companies": 115,
  "_kinds": {
-  "国立市|建築": 13,
+  "国立市|建築": 12,
   "国立市|舗装・道路": 4,
   "国立市|公園・造園": 2,
   "国立市|電気": 5,
